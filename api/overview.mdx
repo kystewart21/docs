@@ -1,0 +1,146 @@
+---
+title: "MCP Endpoint Overview and Protocol"
+sidebarTitle: "Overview"
+description: "Base URL, HTTP methods, JSON-RPC 2.0 request/response shapes, and protocol basics for the College Scorecard MCP server."
+---
+
+The College Scorecard MCP server exposes a single HTTP endpoint that speaks the Model Context Protocol over JSON-RPC 2.0. You send tool calls as POST requests and retrieve the tool manifest with a GET request — no authentication headers or client-side API keys are required. The server handles all College Scorecard API credentials internally, so your AI assistant can start querying institutional data immediately after pointing it at the endpoint.
+
+## Base URL
+
+All requests target the following base URL:
+
+```
+https://your-service.example.com/mcp
+```
+
+<Note>
+  HTTPS is required for all requests. The server does not accept plain HTTP
+  connections. Requests made over `http://` will be rejected or redirected.
+</Note>
+
+## Available Endpoints
+
+The table below lists every HTTP route exposed by the MCP server.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `POST` | `/mcp` | Execute a tool call (JSON-RPC 2.0 `tools/call`) |
+| `GET`  | `/mcp` | Retrieve the tool manifest (`tools/list`) |
+
+Both routes consume and produce `application/json`. Always include the header `Content-Type: application/json` on POST requests.
+
+## Protocol Basics
+
+The server implements the [Model Context Protocol](https://modelcontextprotocol.io) transport layer over standard HTTP. Every POST body must be a well-formed JSON-RPC 2.0 object. MCP-compatible clients (Claude Desktop, Cursor, Windsurf, and others) handle this framing automatically; the details below are relevant if you are integrating directly or debugging raw traffic.
+
+### Request Format
+
+Every tool-call request follows this JSON-RPC 2.0 envelope. Set `method` to `tools/call`, supply the tool name and its arguments inside `params`, and include an `id` you can use to correlate the response.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "<tool_name>",
+    "arguments": {}
+  },
+  "id": 1
+}
+```
+
+<Accordion title="Field descriptions">
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | `jsonrpc` | string | ✅ | Must be the literal string `"2.0"` |
+  | `method` | string | ✅ | Use `"tools/call"` to invoke a tool, or `"tools/list"` to retrieve the manifest |
+  | `params.name` | string | ✅ | The MCP tool name (e.g., `"search_schools"`) |
+  | `params.arguments` | object | ✅ | Tool-specific parameters; see each tool's reference page |
+  | `id` | integer \| string | ✅ | Client-chosen correlation ID; echoed back in the response |
+</Accordion>
+
+### Success Response Format
+
+When a tool call succeeds the server returns HTTP `200` with the following body. The `result` object contains the tool's output payload.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {},
+  "id": 1
+}
+```
+
+The shape of `result` depends on the tool invoked. See the [Schools reference](/api/schools) and [Programs reference](/api/programs) pages for full response field documentation.
+
+### Error Response Format
+
+When a request fails the server returns HTTP `200` (per JSON-RPC 2.0 convention) with an `error` object instead of `result`. The `code` field identifies the failure category, `message` provides a human-readable summary, and the optional `data` field carries field-level detail.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "code": -32602,
+    "message": "Invalid params",
+    "data": { "field": "id", "issue": "required" }
+  },
+  "id": 1
+}
+```
+
+See the [Error Codes](/api/error-codes) reference for the complete list of codes and remediation guidance.
+
+## Retrieving the Tool Manifest
+
+To discover which tools are available and inspect their input schemas, send either a GET request to `/mcp` or a `tools/list` JSON-RPC call:
+
+<Tabs>
+  <Tab title="HTTP GET">
+    ```bash
+    curl https://your-service.example.com/mcp
+    ```
+  </Tab>
+  <Tab title="JSON-RPC">
+    ```bash
+    curl -X POST https://your-service.example.com/mcp \
+      -H "Content-Type: application/json" \
+      -d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}'
+    ```
+  </Tab>
+</Tabs>
+
+Both approaches return the same full tool manifest. See the [Tool List](/api/tool-list) page for the complete response.
+
+## Quick Example: Calling a Tool
+
+The following example calls `search_schools` to find public universities in California.
+
+```bash
+curl -X POST https://your-service.example.com/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "search_schools",
+      "arguments": {
+        "filters": {
+          "state": "CA",
+          "ownership": "public"
+        },
+        "sort_by": "graduation_rate_4yr",
+        "sort_order": "desc",
+        "per_page": 5
+      }
+    },
+    "id": 1
+  }'
+```
+
+<Tip>
+  When using an MCP-compatible AI client you never write these requests
+  manually. The client negotiates the protocol and calls tools on your behalf
+  based on natural-language instructions.
+</Tip>

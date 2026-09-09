@@ -1,0 +1,144 @@
+---
+title: "compare_schools: Side-by-Side College Comparison"
+sidebarTitle: "compare_schools"
+description: "Use compare_schools to place two to five colleges side by side across cost, admissions, graduation rate, and earnings metrics in a single API call."
+---
+
+The `compare_schools` tool accepts a list of two to five College Scorecard school IDs and returns a structured side-by-side comparison of those institutions across whichever metrics you specify. Instead of making multiple `get_school` calls and stitching the data together yourself, `compare_schools` normalizes the fields, aligns them in a single response object, and makes it straightforward for an AI assistant to present a coherent comparison — whether that's in prose, a table, or a ranked list. If you don't specify fields, the tool returns a standard comparison set covering cost, admissions, graduation rate, and earnings.
+
+<Tip>
+Use `search_schools` first to discover school IDs you want to compare. Once you have a list of candidates, pass their IDs directly to `compare_schools` to get a focused, side-by-side view without fetching full profiles one by one.
+</Tip>
+
+## Parameters
+
+<ParamField body="ids" type="integer[]" required>
+  An array of two to five College Scorecard numeric school IDs to compare. IDs must be integers, and the array must contain between 2 and 5 elements. Providing fewer than 2 or more than 5 IDs returns an error.
+
+  Example: `[166683, 243744]`
+</ParamField>
+
+<ParamField body="fields" type="string[]">
+  An optional array of field names specifying which metrics to include in the comparison. When omitted, the tool uses the default comparison set:
+  - `avg_net_price`
+  - `admission_rate`
+  - `graduation_rate_4yr`
+  - `median_earnings_10yr`
+
+  You may include any combination of the following supported field names:
+
+  | Field Name | Description |
+  |---|---|
+  | `avg_net_price` | Average net price per year (all students) |
+  | `in_state_tuition` | Published in-state tuition and fees |
+  | `out_of_state_tuition` | Published out-of-state tuition and fees |
+  | `admission_rate` | Overall admission rate (decimal) |
+  | `graduation_rate_4yr` | 4-year graduation rate (decimal) |
+  | `median_earnings_10yr` | Median earnings 10 years after entry |
+  | `student_size` | Undergraduate enrollment |
+  | `sat_math_midpoint` | SAT Math 50th-percentile score |
+  | `sat_reading_midpoint` | SAT Reading 50th-percentile score |
+  | `act_midpoint` | ACT Composite 50th-percentile score |
+  | `programs_count` | Number of distinct academic programs |
+</ParamField>
+
+## Response
+
+<ResponseField name="comparison" type="array">
+  An array of school objects — one per requested ID — each containing the school's name and the values for every requested field.
+
+  <Expandable title="school comparison object fields">
+    <ResponseField name="id" type="integer">
+      The College Scorecard numeric school ID.
+    </ResponseField>
+
+    <ResponseField name="name" type="string">
+      The institution's official name.
+    </ResponseField>
+
+    <ResponseField name="[field_name]" type="number | integer | null">
+      One key-value pair for each field in `fields_compared`. Values are `null` when the institution does not report that data point to the Department of Education.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="fields_compared" type="string[]">
+  The list of field names actually included in this comparison — matching the `fields` argument you provided, or the default set if `fields` was omitted.
+</ResponseField>
+
+## Example
+
+The following request compares MIT and Stanford across net price, admission rate, median earnings, and graduation rate.
+
+<CodeGroup>
+```json Request
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "compare_schools",
+    "arguments": {
+      "ids": [166683, 243744],
+      "fields": [
+        "avg_net_price",
+        "admission_rate",
+        "median_earnings_10yr",
+        "graduation_rate_4yr"
+      ]
+    }
+  },
+  "id": 1
+}
+```
+
+```json Response
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "comparison": [
+      {
+        "id": 166683,
+        "name": "Massachusetts Institute of Technology",
+        "avg_net_price": 21917,
+        "admission_rate": 0.04,
+        "median_earnings_10yr": 91700,
+        "graduation_rate_4yr": 0.94
+      },
+      {
+        "id": 243744,
+        "name": "Stanford University",
+        "avg_net_price": 17000,
+        "admission_rate": 0.04,
+        "median_earnings_10yr": 95600,
+        "graduation_rate_4yr": 0.95
+      }
+    ],
+    "fields_compared": [
+      "avg_net_price",
+      "admission_rate",
+      "median_earnings_10yr",
+      "graduation_rate_4yr"
+    ]
+  },
+  "id": 1
+}
+```
+</CodeGroup>
+
+## Comparison Strategies
+
+<Accordion title="Comparing cost of attendance">
+  To get the most complete cost picture, request all three cost fields together: `avg_net_price`, `in_state_tuition`, and `out_of_state_tuition`. Keep in mind that `avg_net_price` reflects actual costs after financial aid, while tuition figures are sticker prices. For a student evaluating affordability, `avg_net_price` is generally the more relevant number.
+</Accordion>
+
+<Accordion title="Comparing selectivity and academic fit">
+  Combine `admission_rate` with `sat_math_midpoint`, `sat_reading_midpoint`, and `act_midpoint` to assess how a student's test scores align with each school's admitted class. A school with a 50th-percentile SAT Math of 750 means half of admitted students scored above that mark and half scored below.
+</Accordion>
+
+<Accordion title="Comparing outcomes">
+  Use `graduation_rate_4yr` and `median_earnings_10yr` together to evaluate long-term outcomes. A high graduation rate paired with strong median earnings signals that enrolled students both complete their degrees and find financially rewarding careers. Neither metric alone tells the full story.
+</Accordion>
+
+<Note>
+The order of schools in the `comparison` array matches the order of IDs you provided in the `ids` parameter. If any school ID is not found in the Scorecard dataset, the tool returns an error identifying the invalid ID rather than silently omitting it from the results.
+</Note>

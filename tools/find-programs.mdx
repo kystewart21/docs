@@ -1,0 +1,207 @@
+---
+title: "find_programs: Search Academic Programs and Fields"
+sidebarTitle: "find_programs"
+description: "Use find_programs to search academic programs by keyword or CIP code across all U.S. colleges, or narrow results to a specific institution by school ID."
+---
+
+The `find_programs` tool lets you search the academic programs offered across U.S. colleges in the College Scorecard dataset. You can search by free-text keyword (such as `"nursing"` or `"data science"`), by a standard CIP classification code (such as `"11"` for all Computer Science programs or `"11.0701"` for the specific Computer Science Bachelor's credential), or by a specific institution's school ID. Results include the awarding school, credential level, and — where available — median earnings for program graduates. This tool is especially useful for helping students find schools that offer a particular major, or for analysts mapping program availability across regions.
+
+## Understanding CIP Codes
+
+CIP stands for **Classification of Instructional Programs**, a federal taxonomy maintained by the National Center for Education Statistics (NCES) that provides a standardized set of codes for categorizing academic programs. Every program in the College Scorecard dataset is tagged with a 6-digit CIP code (written with a decimal, e.g. `11.0701`), organized into a two-level hierarchy:
+
+- **2-digit codes** (e.g., `11`) identify broad fields of study — called "series."
+- **4-digit codes** (e.g., `11.07`) identify program families within that series.
+- **6-digit codes** (e.g., `11.0701`) identify specific programs within a family.
+
+When you supply a CIP code to `find_programs`, the tool matches on prefix — so `"11"` returns all programs whose code starts with `11`, and `"11.07"` returns the narrower Computer and Information Sciences family.
+
+### Common CIP Codes
+
+| CIP Code | Field of Study |
+|---|---|
+| `11` | Computer and Information Sciences |
+| `14` | Engineering |
+| `22` | Legal Professions and Studies |
+| `23` | English Language and Literature |
+| `42` | Psychology |
+| `45` | Social Sciences |
+| `51` | Health Professions and Related Programs |
+| `52` | Business, Management, Marketing |
+
+<Tip>
+Use a **2-digit CIP code** for a broad field search (e.g., `"52"` returns all Business programs including Accounting, Finance, and Marketing). Use a **4-digit code** (e.g., `"52.02"`) or full **6-digit code** (e.g., `"52.0201"`) when you need results for a specific program type. You can combine `cip_code` with `keyword` to refine further.
+</Tip>
+
+## Parameters
+
+<ParamField body="keyword" type="string">
+  A free-text search string matched against program titles. For example, `"computer science"` returns programs whose title contains that phrase. Case-insensitive. You may use `keyword` alone, with `cip_code`, or with `school_id`.
+</ParamField>
+
+<ParamField body="cip_code" type="string">
+  A 2-digit, 4-digit, or full 6-digit CIP classification code. Results are filtered to programs whose CIP code begins with the value you provide. For example, `"11"` matches all Computer Science programs; `"11.0701"` matches only the specific Computer Science (General) program.
+</ParamField>
+
+<ParamField body="school_id" type="integer">
+  A College Scorecard numeric school ID. When provided, results are restricted to programs offered by that institution. Combine with `keyword` or `cip_code` to search for a specific program at a specific school.
+</ParamField>
+
+<ParamField body="page" type="integer" default="0">
+  Zero-indexed page number for paginating through results.
+</ParamField>
+
+<ParamField body="per_page" type="integer" default="10">
+  Number of program results to return per page. Minimum is `1`; maximum is `100`.
+</ParamField>
+
+## Response
+
+<ResponseField name="programs" type="array">
+  An array of program objects matching your search criteria.
+
+  <Expandable title="program object fields">
+    <ResponseField name="school_id" type="integer">
+      The College Scorecard numeric ID of the school offering this program.
+    </ResponseField>
+
+    <ResponseField name="school_name" type="string">
+      The official name of the institution offering this program.
+    </ResponseField>
+
+    <ResponseField name="cip_code" type="string">
+      The 6-digit CIP code for this program (e.g., `"11.0701"`).
+    </ResponseField>
+
+    <ResponseField name="program_title" type="string">
+      The official CIP program title (e.g., `"Computer Science"`).
+    </ResponseField>
+
+    <ResponseField name="credential_level" type="string">
+      The credential type awarded for this program. Examples: `"Bachelor's degree"`, `"Master's degree"`, `"Associate's degree"`, `"Certificate"`.
+    </ResponseField>
+
+    <ResponseField name="median_earnings" type="integer">
+      Median earnings for graduates of this specific program, in dollars. `null` if not reported for this program/school combination.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="total" type="integer">
+  Total number of program results matching your query across all pages.
+</ResponseField>
+
+<ResponseField name="page" type="integer">
+  The current zero-indexed page number returned in this response.
+</ResponseField>
+
+<ResponseField name="per_page" type="integer">
+  The number of results per page used for this response.
+</ResponseField>
+
+## Example
+
+The following request searches for Computer Science programs using both a keyword and a 2-digit CIP code, returning the first five results.
+
+<CodeGroup>
+```json Request
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "find_programs",
+    "arguments": {
+      "keyword": "computer science",
+      "cip_code": "11",
+      "per_page": 5
+    }
+  },
+  "id": 1
+}
+```
+
+```json Response
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "programs": [
+      {
+        "school_id": 166683,
+        "school_name": "Massachusetts Institute of Technology",
+        "cip_code": "11.0701",
+        "program_title": "Computer Science",
+        "credential_level": "Bachelor's degree",
+        "median_earnings": 95000
+      }
+    ],
+    "total": 842,
+    "page": 0,
+    "per_page": 5
+  },
+  "id": 1
+}
+```
+</CodeGroup>
+
+## Search Patterns and Examples
+
+<Tabs>
+  <Tab title="By keyword only">
+    Search across all program titles without restricting by CIP code — useful when you're not sure of the exact classification:
+
+    ```json
+    {
+      "jsonrpc": "2.0",
+      "method": "tools/call",
+      "params": {
+        "name": "find_programs",
+        "arguments": {
+          "keyword": "data analytics",
+          "per_page": 10
+        }
+      },
+      "id": 2
+    }
+    ```
+  </Tab>
+  <Tab title="By CIP code only">
+    Search all programs in the Engineering field (CIP `14`) without filtering by name — returns every engineering credential type across all institutions:
+
+    ```json
+    {
+      "jsonrpc": "2.0",
+      "method": "tools/call",
+      "params": {
+        "name": "find_programs",
+        "arguments": {
+          "cip_code": "14",
+          "per_page": 20
+        }
+      },
+      "id": 3
+    }
+    ```
+  </Tab>
+  <Tab title="At a specific school">
+    Retrieve all programs offered at Stanford University (school ID `243744`) to show a student the full range of available majors:
+
+    ```json
+    {
+      "jsonrpc": "2.0",
+      "method": "tools/call",
+      "params": {
+        "name": "find_programs",
+        "arguments": {
+          "school_id": 243744,
+          "per_page": 50
+        }
+      },
+      "id": 4
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Info>
+Program-level earnings data (`median_earnings`) is available only for programs where a sufficient number of students received federal financial aid and had reportable earnings. Many programs — especially at small institutions or for low-enrollment credentials — will return `null` for this field. This is a data availability limitation of the College Scorecard source, not an error.
+</Info>

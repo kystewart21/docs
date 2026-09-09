@@ -1,0 +1,207 @@
+---
+title: "Connect an AI Agent to College Scorecard MCP"
+sidebarTitle: "AI Agent Setup"
+description: "Wire up Claude Desktop, Cursor, or any MCP SDK client to the College Scorecard MCP server in minutes — no API key required on your end."
+---
+
+The College Scorecard MCP server exposes four tools — `search_schools`, `get_school`, `compare_schools`, and `find_programs` — over a single HTTP endpoint at `https://your-service.example.com/mcp`. Any MCP-compatible AI client can connect to this endpoint and immediately start querying U.S. college data. Authentication is handled server-side, so you never need to supply a College Scorecard API key yourself.
+
+<Note>
+  Before connecting a client, verify the server is reachable by sending a `tools/list` request. A successful response lists all four available tools and confirms the transport layer is working correctly.
+
+  ```bash
+  curl -X POST https://your-service.example.com/mcp \
+    -H "Content-Type: application/json" \
+    -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
+  ```
+</Note>
+
+## Choose Your Client
+
+<Tabs>
+  <Tab title="Claude Desktop">
+    Claude Desktop reads its MCP server list from a JSON config file on startup. Adding the College Scorecard server takes less than a minute.
+
+    <Steps>
+      <Step title="Open the Claude Desktop config file">
+        Locate the configuration file for your operating system:
+
+        - **macOS / Linux:** `~/.config/claude/claude_desktop_config.json`
+        - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+        If the file does not exist yet, create it as an empty JSON object (`{}`).
+      </Step>
+
+      <Step title="Add the College Scorecard MCP server">
+        Insert the `mcpServers` block into the config file. If you already have other MCP servers configured, add `college-scorecard` as a sibling entry inside the existing `mcpServers` object.
+
+        ```json claude_desktop_config.json
+        {
+          "mcpServers": {
+            "college-scorecard": {
+              "url": "https://your-service.example.com/mcp",
+              "transport": "http"
+            }
+          }
+        }
+        ```
+      </Step>
+
+      <Step title="Restart Claude Desktop">
+        Fully quit and relaunch Claude Desktop so it picks up the updated config. On macOS, use **Cmd + Q** to ensure the app process exits completely before reopening.
+      </Step>
+
+      <Step title="Verify the connection">
+        In a new Claude Desktop conversation, type:
+
+        > "What MCP tools do you have access to?"
+
+        Claude should list the four College Scorecard tools: `search_schools`, `get_school`, `compare_schools`, and `find_programs`. If the tools do not appear, double-check the JSON syntax in your config file — a trailing comma or mismatched brace is the most common culprit.
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Cursor IDE">
+    Cursor has a built-in MCP server manager accessible through its settings UI, so no manual config file editing is required.
+
+    <Steps>
+      <Step title="Open MCP Server settings">
+        Launch Cursor and navigate to **Settings** (gear icon or `Ctrl/Cmd + ,`). Search for **MCP Servers** in the settings search bar, or find it under the **AI** section of the sidebar.
+      </Step>
+
+      <Step title="Add a new MCP server">
+        Click **Add MCP Server** and fill in the following fields:
+
+        | Field | Value |
+        |-------|-------|
+        | Name | `college-scorecard` |
+        | Transport | `http` |
+        | URL | `https://your-service.example.com/mcp` |
+
+        Leave the authentication fields blank — the server handles credentials internally.
+      </Step>
+
+      <Step title="Enable and save">
+        Toggle the server to **Enabled** and click **Save**. Cursor will immediately attempt to handshake with the endpoint and populate the available tools list.
+      </Step>
+
+      <Step title="Test in a Cursor chat window">
+        Open a Cursor chat panel and ask a natural-language question such as:
+
+        > "Find engineering schools in Texas with high graduation rates."
+
+        Cursor will automatically select and invoke the appropriate College Scorecard tool, display the raw tool result, and summarize the findings inline in the chat.
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="MCP SDK (Python)">
+    Use the official MCP Python SDK to call College Scorecard tools programmatically from your own scripts, notebooks, or backend services.
+
+    <Steps>
+      <Step title="Install the MCP SDK">
+        ```bash
+        pip install mcp
+        ```
+      </Step>
+
+      <Step title="Create a client session">
+        Instantiate a `ClientSession` pointed at the MCP endpoint. The SDK handles the JSON-RPC 2.0 framing automatically.
+
+        ```python search_mit.py
+        import asyncio
+        from mcp import ClientSession
+
+        async def main():
+            async with ClientSession(
+                transport="http",
+                url="https://your-service.example.com/mcp"
+            ) as session:
+                # Confirm available tools
+                tools = await session.list_tools()
+                print([t.name for t in tools.tools])
+                # ['search_schools', 'get_school', 'compare_schools', 'find_programs']
+
+                # Search for schools matching "MIT" in Massachusetts
+                result = await session.call_tool(
+                    "search_schools",
+                    arguments={
+                        "query": "MIT",
+                        "filters": {"state": "MA"}
+                    }
+                )
+                print(result)
+
+        asyncio.run(main())
+        ```
+      </Step>
+
+      <Step title="Handle the response">
+        The `call_tool` method returns an `MCP ToolResult` object. The `content` field contains a list of content blocks — for these tools, the first block is always `type: "text"` with a JSON string payload.
+
+        ```python parse_result.py
+        import asyncio
+        import json
+        from mcp import ClientSession
+
+        async def main():
+            async with ClientSession(
+                transport="http",
+                url="https://your-service.example.com/mcp"
+            ) as session:
+                result = await session.call_tool(
+                    "search_schools",
+                    arguments={"query": "MIT", "filters": {"state": "MA"}}
+                )
+                # Parse the JSON string from the first content block
+                data = json.loads(result.content[0].text)
+                for school in data.get("results", []):
+                    print(school["school.name"], "—", school["id"])
+
+        asyncio.run(main())
+        ```
+      </Step>
+
+      <Step title="Run and verify">
+        Execute your script. You should see school names and their College Scorecard IDs printed to stdout. If you receive a connection error, confirm that your network allows outbound HTTPS to `your-service.example.com`.
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+## Available Tools at a Glance
+
+Once connected, your AI client has access to all four tools exposed by the server.
+
+<CardGroup cols={2}>
+  <Card title="search_schools" icon="magnifying-glass">
+    Search for schools by name, location, size, ownership type, or any combination of College Scorecard filters. Returns a ranked list of matching institutions with key metrics.
+  </Card>
+  <Card title="get_school" icon="school">
+    Fetch the full data profile for a single school by its College Scorecard numeric ID. Returns all available fields including cost, admissions, outcomes, and programs.
+  </Card>
+  <Card title="compare_schools" icon="chart-bar">
+    Accept a list of school IDs and return a side-by-side comparison across a configurable set of metrics — ideal for ranking finalists.
+  </Card>
+  <Card title="find_programs" icon="book-open">
+    Search for academic programs by keyword or CIP code, optionally scoped to a specific school. Returns program availability and, where reported, earnings outcomes.
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<Accordion title="Claude does not show any MCP tools after restarting">
+  Confirm the config file path is correct for your OS. On macOS, note that `~/.config/claude/` is distinct from `~/Library/Application Support/Claude/` — use the path shown in the **Claude Desktop** tab above. Validate your JSON with a linter; a single syntax error causes the entire `mcpServers` block to be ignored silently.
+</Accordion>
+
+<Accordion title="Tool calls return a 401 Unauthorized error">
+  This should not occur under normal circumstances because the server manages its own API key. If you see a 401, the server-side secret may have expired or been rotated. Contact your account administrator to confirm the service is active.
+</Accordion>
+
+<Accordion title="The MCP SDK raises a connection timeout">
+  Ensure your environment has outbound access to port 443 on `your-service.example.com`. Firewalls, corporate proxies, and some cloud sandbox environments block outbound HTTPS to arbitrary hosts. Try a direct `curl` call from the same machine first to isolate the issue.
+</Accordion>
+
+<Accordion title="Cursor shows 'No tools available' after saving the server">
+  Reload the Cursor window (`Ctrl/Cmd + Shift + P` → **Developer: Reload Window**) after saving the MCP server config. Cursor occasionally caches the tools list and requires a window reload — not just an app restart — to re-fetch it.
+</Accordion>

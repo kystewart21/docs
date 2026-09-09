@@ -1,0 +1,161 @@
+---
+title: "Frequently Asked Questions — College Scorecard MCP"
+sidebarTitle: "FAQ"
+description: "Answers to the most common questions about the College Scorecard MCP server, its data, available tools, and how to integrate it with AI assistants."
+---
+
+The College Scorecard MCP makes it easy to query U.S. higher education data from any AI assistant that supports the Model Context Protocol. This page answers the most common questions about how the service works, where the data comes from, and how to handle edge cases you may encounter. If your question isn't covered here, refer to the tool reference pages for detailed parameter documentation.
+
+<Accordion title="Do I need my own College Scorecard API key?">
+  No. The MCP server manages API key authentication entirely on the server side. The College Scorecard API key is stored as a secure server-side secret and is never exposed to clients or passed through the MCP protocol.
+
+  To start using the service, you only need the MCP endpoint URL:
+
+  ```
+  https://your-service.example.com/mcp
+  ```
+
+  Add this URL to your AI assistant's MCP configuration and you're ready to query school data immediately — no API key registration or management required on your end.
+</Accordion>
+
+<Accordion title="How current is the College Scorecard data?">
+  The College Scorecard dataset is published and updated **annually** by the U.S. Department of Education, typically in the fall of each year. Each release incorporates data from the most recently completed academic and fiscal year, including enrollment figures, graduation rates, cost data, and earnings outcomes.
+
+  The MCP server always serves the **most recently published dataset**. You do not need to take any action to receive updated data — the server automatically reflects the latest release once it is available.
+
+  <Info>
+    Because earnings outcomes (like `median_earnings_10yr`) are longitudinal, data for the most recent cohorts may use earlier earnings measurement years. Refer to the [College Scorecard documentation](https://collegescorecard.ed.gov/data/documentation/) for details on cohort definitions.
+  </Info>
+</Accordion>
+
+<Accordion title="How many schools are in the dataset?">
+  The College Scorecard dataset includes data on **over 6,500 U.S. colleges and universities**. Coverage is limited to institutions that participate in Title IV federal student financial aid programs — meaning they are eligible to receive federal grants and loans on behalf of their students.
+
+  The dataset spans all institution types:
+  - Public colleges and universities (state and community colleges)
+  - Private nonprofit institutions (liberal arts colleges, research universities, faith-based schools)
+  - Private for-profit institutions (vocational schools, online universities)
+
+  Institutions that do not participate in Title IV programs — such as some trade schools and non-accredited institutions — are not included.
+</Accordion>
+
+<Accordion title="Can I filter by major or program?">
+  Yes. The `find_programs` tool is specifically designed for program-level searches. You can query it using a plain-language keyword (e.g., `"nursing"`, `"computer science"`) or a specific CIP code (e.g., `"11.0701"` for Computer Science).
+
+  For more targeted searches, you can combine tools in sequence:
+
+  1. Call `search_schools` with location or institution-type filters (e.g., `state: "OR"`, `ownership: "public"`) to get a list of relevant school IDs.
+  2. Call `find_programs` with a specific `school_id` from those results to see the programs that school offers — including credential levels and median earnings per program.
+
+  This two-step approach is especially useful when you want to find schools in a specific state that offer a particular program at a specific degree level.
+</Accordion>
+
+<Accordion title="What does the admission_rate field represent?">
+  The `admission_rate` field contains the **overall share of applicants who received an offer of admission** from the institution. It is expressed as a decimal between `0.0` and `1.0`.
+
+  ```
+  Examples:
+    0.04 → 4% of applicants admitted (highly selective)
+    0.55 → 55% of applicants admitted (moderately selective)
+    0.98 → 98% of applicants admitted (open enrollment)
+  ```
+
+  <Warning>
+    Not all schools report admission rate data to the Department of Education. Open-enrollment institutions (which admit all applicants) and some schools that choose not to participate in this reporting will have a `null` value for this field. A `null` admission rate does **not** mean the school is unselective — always verify with the school directly.
+  </Warning>
+</Accordion>
+
+<Accordion title="How do I get a school's ID number?">
+  Every school in the College Scorecard dataset has a unique numeric identifier stored in the `id` field. The easiest way to look up a school's ID is to call `search_schools` with the school's name as the query.
+
+  For example, to find the ID for "University of Michigan":
+
+  ```json
+  {
+    "tool": "search_schools",
+    "parameters": {
+      "query": "University of Michigan"
+    }
+  }
+  ```
+
+  The `id` field in each result is the official College Scorecard school identifier. Once you have the ID, use it with `get_school` to retrieve the full record, or with `compare_schools` to compare multiple institutions side by side.
+
+  <Tip>
+    School IDs are stable across dataset releases. You can save them and reuse them in future queries without needing to search by name again.
+  </Tip>
+</Accordion>
+
+<Accordion title="What is a CIP code?">
+  A **CIP code** (Classification of Instructional Programs) is a standardized federal taxonomy used to categorize academic programs. It was developed by the National Center for Education Statistics (NCES) and is used consistently across all U.S. colleges and universities to enable apples-to-apples program comparisons.
+
+  CIP codes are formatted as two numbers separated by a decimal point:
+
+  | Format | Granularity | Example |
+  |---|---|---|
+  | 2-digit (e.g., `11`) | Broad discipline category | Computer and Information Sciences |
+  | 4-digit (e.g., `11.07`) | Program family | Computer Science |
+  | 6-digit (e.g., `11.0701`) | Specific program | Computer Science (general) |
+
+  Common CIP codes you may encounter:
+
+  | CIP Code | Program |
+  |---|---|
+  | `11.0701` | Computer Science |
+  | `52.0201` | Business Administration and Management |
+  | `51.3801` | Registered Nursing |
+  | `45.1001` | Political Science and Government |
+  | `27.0101` | Mathematics |
+  | `14.0901` | Computer Engineering |
+
+  The full CIP taxonomy is published by NCES at [nces.ed.gov/ipeds/cipcode](https://nces.ed.gov/ipeds/cipcode).
+</Accordion>
+
+<Accordion title="Can I use this with any AI assistant?">
+  The College Scorecard MCP server implements the **Model Context Protocol (MCP)**, an open standard for connecting AI assistants to external tools and data sources. Any MCP-compatible client can connect to the service.
+
+  Supported clients include:
+
+  <CardGroup cols={3}>
+    <Card title="Claude Desktop" icon="robot">
+      Add the MCP endpoint in Claude Desktop's settings under "Connected Tools" to query school data in any conversation.
+    </Card>
+    <Card title="Cursor" icon="code">
+      Configure the MCP endpoint in Cursor's tool settings to use College Scorecard queries during code generation and research.
+    </Card>
+    <Card title="Custom Apps" icon="wrench">
+      Any application built with an MCP SDK (TypeScript, Python, etc.) can connect by pointing the client at the endpoint URL.
+    </Card>
+  </CardGroup>
+
+  The MCP endpoint to use in all clients is:
+
+  ```
+  https://your-service.example.com/mcp
+  ```
+</Accordion>
+
+<Accordion title="Are private for-profit schools included?">
+  Yes. The dataset includes **all three institution types** that participate in Title IV federal student aid programs:
+
+  - **Public** — State and local government-operated colleges and universities
+  - **Private nonprofit** — Independently operated institutions with tax-exempt status
+  - **Private for-profit** — Privately owned institutions operated for profit
+
+  You can filter your searches by ownership type using the `ownership` parameter in `search_schools`. For example, to exclude for-profit institutions from your results, pass `ownership: "public"` or `ownership: "private_nonprofit"`.
+</Accordion>
+
+<Accordion title="What happens if a field value is null?">
+  Some institutions do not report all data categories to the Department of Education. This is common for:
+  - Schools with small enrollment in a particular subgroup (data suppressed to protect privacy)
+  - Institutions that voluntarily opt out of specific reporting requirements
+  - Newer programs without sufficient cohort data for longitudinal outcomes
+
+  When a data point is unavailable, the MCP server returns `null` for that field rather than omitting it entirely. This makes it straightforward to detect missing values in your AI assistant's responses.
+
+  <Note>
+    If you are building an application on top of the MCP tools, ensure your logic handles `null` values gracefully — for example, by displaying "Not reported" rather than showing `null` or crashing. Your AI assistant should similarly acknowledge data gaps rather than making assumptions about unreported fields.
+  </Note>
+
+  The most commonly `null` fields are `admission_rate` (not reported by open-enrollment schools), `sat_math_midpoint` / `sat_reading_midpoint` / `act_midpoint` (test-optional schools may not report), and `median_earnings` at the program level (requires sufficient cohort size).
+</Accordion>

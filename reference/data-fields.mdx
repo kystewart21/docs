@@ -1,0 +1,265 @@
+---
+title: "College Scorecard Data Fields Reference"
+sidebarTitle: "Data Fields"
+description: "Complete reference for all data fields returned by College Scorecard MCP tools, organized by category including identity, cost, admissions, and outcomes."
+---
+
+The College Scorecard MCP tools return structured data drawn directly from the U.S. Department of Education's College Scorecard dataset. Each field maps to a specific Scorecard API attribute and is normalized into a flat, readable key for use in MCP responses. Use this reference to understand what each field represents, its data type, and how to interpret its values.
+
+## School Identity
+
+These fields identify and describe the institution itself — its name, location, type, and web presence.
+
+<Expandable title="School Identity Fields">
+
+<ResponseField name="id" type="integer" required>
+  The unique numeric identifier assigned to the institution by the College Scorecard dataset. Use this value with `get_school` and `compare_schools` to reference a specific school without ambiguity.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  The official name of the institution as it appears in the College Scorecard dataset (e.g., `"Massachusetts Institute of Technology"`). Maps to `school.name`.
+</ResponseField>
+
+<ResponseField name="city" type="string">
+  The city in which the institution's main campus is located (e.g., `"Cambridge"`). Maps to `school.city`.
+</ResponseField>
+
+<ResponseField name="state" type="string">
+  The two-letter U.S. state or territory code for the institution's location (e.g., `"MA"`, `"CA"`, `"TX"`). Maps to `school.state`.
+</ResponseField>
+
+<ResponseField name="zip" type="string">
+  The ZIP code of the institution's main campus address (e.g., `"02139"`). Maps to `school.zip`.
+</ResponseField>
+
+<ResponseField name="ownership" type="string">
+  The institutional control type. One of three values:
+  - `"Public"` — State or local government operated
+  - `"Private nonprofit"` — Independently operated, tax-exempt institution
+  - `"Private for-profit"` — Privately owned, profit-generating institution
+
+  Maps to `school.ownership`.
+</ResponseField>
+
+<ResponseField name="locale" type="string">
+  The geographic setting of the campus, based on the NCES locale classification. Possible values include:
+  - `"City: Large"`, `"City: Midsize"`, `"City: Small"`
+  - `"Suburb: Large"`, `"Suburb: Midsize"`, `"Suburb: Small"`
+  - `"Town: Fringe"`, `"Town: Distant"`, `"Town: Remote"`
+  - `"Rural: Fringe"`, `"Rural: Distant"`, `"Rural: Remote"`
+
+  Maps to `school.locale`.
+</ResponseField>
+
+<ResponseField name="url" type="string">
+  The URL of the institution's official website (e.g., `"https://www.mit.edu"`). Maps to `school.school_url`.
+</ResponseField>
+
+</Expandable>
+
+---
+
+## Student Population
+
+These fields describe the size and demographic composition of the student body.
+
+<Expandable title="Student Population Fields">
+
+<ResponseField name="student_size" type="integer">
+  The total number of undergraduate students enrolled at the institution. Maps to `latest.student.size`.
+
+  ```
+  Example: 11520
+  ```
+</ResponseField>
+
+<ResponseField name="demographics.race_ethnicity.*" type="number">
+  A set of fields representing the share of undergraduate students identifying with each racial or ethnic group. Values are decimal fractions between `0.0` and `1.0`. Available sub-keys include:
+
+  | Sub-key | Description |
+  |---|---|
+  | `white` | Share identifying as White |
+  | `black` | Share identifying as Black or African American |
+  | `hispanic` | Share identifying as Hispanic or Latino |
+  | `asian` | Share identifying as Asian |
+  | `aian` | Share identifying as American Indian / Alaska Native |
+  | `nhpi` | Share identifying as Native Hawaiian / Pacific Islander |
+  | `two_or_more` | Share identifying as two or more races |
+  | `non_resident_alien` | Share of non-resident alien students |
+  | `unknown` | Share with unknown race/ethnicity |
+
+  Maps to `latest.student.demographics.race_ethnicity.*`.
+</ResponseField>
+
+<ResponseField name="demographics.share_first_generation" type="number">
+  The share of undergraduate students who are the first in their immediate family to attend college. Value is a decimal fraction between `0.0` and `1.0`. Maps to `latest.student.share_first_generation`.
+
+  ```
+  Example: 0.34 → 34% first-generation students
+  ```
+</ResponseField>
+
+</Expandable>
+
+---
+
+## Admissions
+
+These fields reflect the selectivity and standardized test score profile of admitted students.
+
+<Expandable title="Admissions Fields">
+
+<ResponseField name="admission_rate" type="number">
+  The overall share of applicants who received an offer of admission, expressed as a decimal between `0.0` and `1.0`. A lower value indicates higher selectivity. Maps to `latest.admissions.admission_rate.overall`.
+
+  ```
+  Example: 0.04 → 4% of applicants admitted
+  ```
+
+  <Note>
+    Not all institutions report admission rate data. This field may be `null` for open-enrollment schools or schools that choose not to report.
+  </Note>
+</ResponseField>
+
+<ResponseField name="sat_math_midpoint" type="integer">
+  The SAT Math section score at the 50th percentile for enrolled students. Scored on a scale of 200–800. Maps to `latest.admissions.sat_scores.midpoint.math`.
+</ResponseField>
+
+<ResponseField name="sat_reading_midpoint" type="integer">
+  The SAT Evidence-Based Reading and Writing (EBRW) section score at the 50th percentile for enrolled students. Scored on a scale of 200–800. Maps to `latest.admissions.sat_scores.midpoint.critical_reading`.
+</ResponseField>
+
+<ResponseField name="act_midpoint" type="integer">
+  The ACT Composite score at the 50th percentile for enrolled students. Scored on a scale of 1–36. Maps to `latest.admissions.act_scores.midpoint.cumulative`.
+</ResponseField>
+
+</Expandable>
+
+---
+
+## Cost
+
+These fields describe what students and families can expect to pay, including published tuition rates and actual net prices after financial aid.
+
+<Expandable title="Cost Fields">
+
+<ResponseField name="avg_net_price" type="integer">
+  The average annual net price paid by all undergraduate students receiving Title IV federal financial aid, after grants and scholarships are applied. This is typically lower than published tuition. Maps to `latest.cost.avg_net_price.overall`.
+
+  ```
+  Example: 18500 → $18,500 per year average net price
+  ```
+</ResponseField>
+
+<ResponseField name="in_state_tuition" type="integer">
+  The published annual in-state tuition and required fees, before any financial aid is applied. Relevant primarily for public institutions. Maps to `latest.cost.tuition.in_state`.
+</ResponseField>
+
+<ResponseField name="out_of_state_tuition" type="integer">
+  The published annual out-of-state tuition and required fees, before any financial aid is applied. Maps to `latest.cost.tuition.out_of_state`.
+</ResponseField>
+
+<ResponseField name="net_price_by_income.*" type="integer">
+  Average net price broken down by family income bracket for students receiving Title IV aid. Sub-keys correspond to the following income ranges:
+
+  | Sub-key | Family Income Range |
+  |---|---|
+  | `0_30000` | $0 – $30,000 |
+  | `30001_48000` | $30,001 – $48,000 |
+  | `48001_75000` | $48,001 – $75,000 |
+  | `75001_110000` | $75,001 – $110,000 |
+  | `110001_plus` | $110,001 and above |
+
+  Maps to `latest.cost.net_price.public.*` or `latest.cost.net_price.private.*` depending on ownership type.
+</ResponseField>
+
+</Expandable>
+
+---
+
+## Outcomes
+
+These fields measure student success after enrollment — graduation, employment, and loan repayment.
+
+<Expandable title="Outcomes Fields">
+
+<ResponseField name="graduation_rate_4yr" type="number">
+  The share of full-time, first-time students who completed their degree within 150% of the normal program time (6 years for a 4-year program). Expressed as a decimal between `0.0` and `1.0`. Maps to `latest.completion.completion_rate_4yr_150nt`.
+
+  ```
+  Example: 0.87 → 87% graduation rate
+  ```
+</ResponseField>
+
+<ResponseField name="graduation_rate_6yr" type="number">
+  The share of students who completed their degree within 200% of normal program time (8 years for a 4-year program). Provides a broader view of completion than the 4-year rate. Maps to `latest.completion.completion_rate_4yr_200nt`.
+</ResponseField>
+
+<ResponseField name="median_earnings_10yr" type="integer">
+  The median annual earnings of students who received federal financial aid, measured 10 years after their initial enrollment. Reported in U.S. dollars. Maps to `latest.earnings.10_yrs_after_entry.median`.
+
+  ```
+  Example: 72000 → $72,000 median annual earnings
+  ```
+</ResponseField>
+
+<ResponseField name="median_earnings_6yr" type="integer">
+  The median annual earnings of students who received federal financial aid, measured 6 years after their initial enrollment. Reported in U.S. dollars. Maps to `latest.earnings.6_yrs_after_entry.median`.
+</ResponseField>
+
+<ResponseField name="repayment_rate_3yr" type="number">
+  The share of borrowers who have reduced their principal loan balance by at least $1 within 3 years of entering repayment. A higher value indicates students are better able to manage their loan obligations post-graduation. Expressed as a decimal between `0.0` and `1.0`. Maps to `latest.repayment.3_yr_repayment.overall`.
+</ResponseField>
+
+</Expandable>
+
+---
+
+## Programs
+
+These fields describe the academic programs offered at an institution.
+
+<Expandable title="Program Fields">
+
+<ResponseField name="programs_count" type="integer">
+  The total number of distinct degree programs offered by the institution across all credential levels. Derived from the `latest.programs.cip_4_digit` array.
+</ResponseField>
+
+<ResponseField name="programs" type="array">
+  An array of program objects, each representing a specific academic program offered at the institution. Each object contains the following fields:
+
+  <Expandable title="Program object fields">
+
+  <ResponseField name="programs[].cip_code" type="string">
+    The 6-digit Classification of Instructional Programs (CIP) code for the program, formatted as `"XX.XXXX"` (e.g., `"11.0701"` for Computer Science). See the [CIP code taxonomy](https://nces.ed.gov/ipeds/cipcode) for the full list.
+  </ResponseField>
+
+  <ResponseField name="programs[].program_title" type="string">
+    The human-readable name of the academic program as defined by the CIP taxonomy (e.g., `"Computer Science"`, `"Business Administration and Management"`).
+  </ResponseField>
+
+  <ResponseField name="programs[].credential_level" type="string">
+    The type of credential awarded upon completion. One of:
+    - `"Certificate"` — Undergraduate certificate
+    - `"Associate"` — Associate's degree (2-year)
+    - `"Bachelor's"` — Bachelor's degree (4-year)
+    - `"Post-baccalaureate"` — Certificate earned after a bachelor's
+    - `"Master's"` — Master's degree
+    - `"Doctoral"` — Doctoral degree
+    - `"First Professional"` — Professional degree (e.g., MD, JD)
+  </ResponseField>
+
+  <ResponseField name="programs[].median_earnings" type="integer">
+    The median annual earnings of graduates from this specific program, reported in U.S. dollars. Allows comparison of earning outcomes across programs within or across schools. May be `null` if insufficient data is available.
+  </ResponseField>
+
+  </Expandable>
+</ResponseField>
+
+</Expandable>
+
+---
+
+<Note>
+  All fields sourced from the College Scorecard dataset reflect the most recently published annual release by the U.S. Department of Education. Fields marked as potentially `null` indicate voluntary reporting — not all institutions submit data for every category.
+</Note>

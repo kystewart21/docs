@@ -1,0 +1,174 @@
+---
+title: "MCP Tools Overview: College Scorecard"
+sidebarTitle: "Overview"
+description: "Explore four MCP tools — search_schools, get_school, compare_schools, and find_programs — to query U.S. college data from any AI assistant."
+---
+
+The College Scorecard MCP server exposes four tools that AI assistants can call to search, retrieve, compare, and explore U.S. college and program data sourced from the U.S. Department of Education's College Scorecard dataset. Each tool accepts structured JSON arguments and returns clean, normalized data — no API key management required on your end. Whether you're building a college-search chatbot, an academic advisor agent, or a data-analysis workflow, these tools give your AI direct access to authoritative higher-education data.
+
+## Available Tools
+
+<CardGroup cols={2}>
+  <Card title="search_schools" icon="magnifying-glass" href="/tools/search-schools">
+    Full-text and filtered search across all U.S. colleges in the Scorecard dataset. Filter by state, ownership type, locale, cost, and graduation rate.
+  </Card>
+  <Card title="get_school" icon="school" href="/tools/get-school">
+    Retrieve the complete Scorecard profile for a single institution by its numeric ID, including tuition, test scores, outcomes, and programs.
+  </Card>
+  <Card title="compare_schools" icon="table-columns" href="/tools/compare-schools">
+    Place two to five schools side by side across any combination of cost, admissions, and outcomes metrics for direct comparison.
+  </Card>
+  <Card title="find_programs" icon="book-open" href="/tools/find-programs">
+    Search academic programs and fields of study by keyword or CIP code, optionally scoped to a specific institution.
+  </Card>
+</CardGroup>
+
+## Tool Reference Summary
+
+The following table provides a quick-reference overview of each tool, its purpose, and its primary parameters.
+
+| Tool | Description | Key Parameters |
+|---|---|---|
+| `search_schools` | Search colleges by name and/or filter criteria | `query`, `filters` (state, ownership, locale, cost, graduation rate), `page`, `per_page` |
+| `get_school` | Fetch full Scorecard profile for one school | `id` (required) |
+| `compare_schools` | Compare 2–5 schools across selected metrics | `ids` (required), `fields` |
+| `find_programs` | Search academic programs by keyword or CIP code | `keyword`, `cip_code`, `school_id`, `page`, `per_page` |
+
+## JSON-RPC 2.0 Request Format
+
+All tool calls follow the JSON-RPC 2.0 protocol. You send a `POST` request to the MCP endpoint with a JSON body that specifies the method `tools/call`, the tool `name`, and its `arguments`. The server processes the request and returns a structured `result` object inside a standard JSON-RPC response envelope.
+
+The MCP endpoint for all requests is:
+
+```
+https://your-service.example.com/mcp
+```
+
+Here is the generic structure of a tool call request:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "<tool_name>",
+    "arguments": {
+      "<param1>": "<value1>",
+      "<param2>": "<value2>"
+    }
+  },
+  "id": 1
+}
+```
+
+And the corresponding response envelope:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    ...
+  },
+  "id": 1
+}
+```
+
+<Note>
+The `id` field is an arbitrary client-chosen identifier used to match responses to requests. You may use any integer or string value — it is echoed back in the response unchanged.
+</Note>
+
+If the server encounters an error, it returns a JSON-RPC error object instead of a `result`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "code": -32602,
+    "message": "Invalid params",
+    "data": "The 'id' field is required for get_school."
+  },
+  "id": 1
+}
+```
+
+## Tool Discovery with `tools/list`
+
+Before calling a specific tool, an AI agent can discover all available tools and their schemas by calling the `tools/list` method. This returns a list of every tool the server exposes, along with each tool's name, description, and input schema — enabling dynamic, schema-driven tool use without hardcoded knowledge of the API surface.
+
+Send a `tools/list` request like this:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/list",
+  "params": {},
+  "id": 1
+}
+```
+
+The server responds with an array of tool definitions:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "tools": [
+      {
+        "name": "search_schools",
+        "description": "Search U.S. colleges by name or filter criteria such as state, ownership type, cost, and graduation rate.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": { "type": "string" },
+            "filters": { "type": "object" },
+            "page": { "type": "integer" },
+            "per_page": { "type": "integer" }
+          }
+        }
+      },
+      {
+        "name": "get_school",
+        "description": "Retrieve the full College Scorecard profile for a single institution by its numeric ID.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "integer" }
+          },
+          "required": ["id"]
+        }
+      },
+      {
+        "name": "compare_schools",
+        "description": "Compare two to five colleges side by side across cost, admissions, and outcomes metrics.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "ids": { "type": "array", "items": { "type": "integer" } },
+            "fields": { "type": "array", "items": { "type": "string" } }
+          },
+          "required": ["ids"]
+        }
+      },
+      {
+        "name": "find_programs",
+        "description": "Search academic programs and fields of study by keyword or CIP classification code.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "keyword": { "type": "string" },
+            "cip_code": { "type": "string" },
+            "school_id": { "type": "integer" },
+            "page": { "type": "integer" },
+            "per_page": { "type": "integer" }
+          }
+        }
+      }
+    ]
+  },
+  "id": 1
+}
+```
+
+<Tip>
+Most MCP-compatible AI frameworks — such as Claude, LangChain, and OpenAI tool-use integrations — call `tools/list` automatically when your agent connects to the server. You rarely need to invoke it manually unless you are debugging or building a custom client.
+</Tip>

@@ -1,0 +1,221 @@
+---
+title: "Programs Endpoint: Fields of Study Reference"
+sidebarTitle: "Programs"
+description: "Response field reference for find_programs, covering CIP codes, credential levels, program earnings data, and pagination for fields of study."
+---
+
+The `find_programs` tool searches academic programs and fields of study across the College Scorecard dataset. You can query by keyword, by a CIP (Classification of Instructional Programs) code, by a specific school's ID, or by any combination of the three. Each result is a **program object** that links a field of study to the institution offering it, along with credential level and earnings outcomes where available. This page documents every field in the program object, explains the CIP code system, and covers pagination for large result sets.
+
+## The Program Object
+
+A program record represents a single credential offered by a single institution in a specific field of study. The same CIP code can appear multiple times in a result set — once per institution that offers it, and once per credential level at institutions that offer both an associate's and a bachelor's degree in the same field.
+
+<Note>
+  Program-level earnings data is not available for every program. The College
+  Scorecard suppresses earnings figures for cohorts with fewer than 30 students
+  to protect individual privacy. When earnings are suppressed, `median_earnings`
+  and `earnings_count` are both `null`.
+</Note>
+
+### Institution Reference
+
+<ResponseField name="school_id" type="integer" required>
+  The numeric College Scorecard ID of the institution offering this program. Pass this value to `get_school` to retrieve the full institutional profile.
+</ResponseField>
+
+<ResponseField name="school_name" type="string" required>
+  The institution's official name (e.g., `"University of Michigan-Ann Arbor"`). Included in every program record for convenience so you can identify the school without a separate lookup.
+</ResponseField>
+
+<ResponseField name="school_state" type="string" required>
+  The two-letter state abbreviation for the institution's primary campus (e.g., `"MI"`). Useful for filtering or grouping results by geography.
+</ResponseField>
+
+### Program Classification
+
+<ResponseField name="cip_code" type="string" required>
+  The 4-digit CIP (Classification of Instructional Programs) code that identifies this field of study, formatted as `"XX.XXXX"` (e.g., `"11.0701"` for Computer Science, `"52.0201"` for Business Administration). See the [CIP Code Structure](#cip-code-structure) section below for details.
+</ResponseField>
+
+<ResponseField name="cip_title" type="string" required>
+  The official program title corresponding to the CIP code, as defined by the National Center for Education Statistics (e.g., `"Computer Science"`, `"Business Administration and Management, General"`).
+</ResponseField>
+
+<ResponseField name="credential_level" type="string" required>
+  The degree or credential awarded upon completion. See the [Credential Level Codes](#credential-level-codes) table for all possible values.
+</ResponseField>
+
+### Earnings Outcomes
+
+<ResponseField name="median_earnings" type="integer | null">
+  Median annual earnings in USD for graduates of this program at this institution, measured at an unspecified point after graduation (typically 1–4 years post-completion depending on dataset vintage). Returns `null` when the cohort size is below the suppression threshold.
+</ResponseField>
+
+<ResponseField name="earnings_count" type="integer | null">
+  The number of students included in the earnings sample for this program. Provides context for interpreting `median_earnings` — a median based on 30 students is less stable than one based on 500. Returns `null` when earnings are suppressed.
+</ResponseField>
+
+---
+
+## Paginated List Response
+
+The `find_programs` tool always wraps results in a pagination envelope identical in structure to the one used by `search_schools`.
+
+<ResponseField name="programs" type="array">
+  An array of program objects matching the query parameters. May be empty (`[]`) if no programs match.
+</ResponseField>
+
+<ResponseField name="total" type="integer" required>
+  Total number of matching program records across all pages. Divide by `per_page` and round up to determine the total page count.
+</ResponseField>
+
+<ResponseField name="page" type="integer" required>
+  Zero-indexed current page number.
+</ResponseField>
+
+<ResponseField name="per_page" type="integer" required>
+  Number of results per page applied to this response.
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "programs": [
+      {
+        "school_id": 170976,
+        "school_name": "University of Michigan-Ann Arbor",
+        "school_state": "MI",
+        "cip_code": "11.0701",
+        "cip_title": "Computer Science",
+        "credential_level": "Bachelor's degree",
+        "median_earnings": 98600,
+        "earnings_count": 412
+      },
+      {
+        "school_id": 170976,
+        "school_name": "University of Michigan-Ann Arbor",
+        "school_state": "MI",
+        "cip_code": "11.0701",
+        "cip_title": "Computer Science",
+        "credential_level": "Master's degree",
+        "median_earnings": 121400,
+        "earnings_count": 287
+      },
+      {
+        "school_id": 147767,
+        "school_name": "University of Illinois Urbana-Champaign",
+        "school_state": "IL",
+        "cip_code": "11.0701",
+        "cip_title": "Computer Science",
+        "credential_level": "Bachelor's degree",
+        "median_earnings": 112000,
+        "earnings_count": 538
+      }
+    ],
+    "total": 2847,
+    "page": 0,
+    "per_page": 10
+  },
+  "id": 1
+}
+```
+
+---
+
+## Credential Level Codes
+
+The `credential_level` field uses the standard credential taxonomy from the College Scorecard dataset. The table below maps each value to its meaning and typical duration.
+
+| Value | Description | Typical Duration |
+|-------|-------------|-----------------|
+| `"Certificate"` | Undergraduate certificate or diploma | Less than 2 years |
+| `"Associate's degree"` | Associate of Arts, Science, or Applied Science | 2 years |
+| `"Bachelor's degree"` | Bachelor of Arts, Science, or equivalent | 4 years |
+| `"Graduate certificate"` | Post-baccalaureate certificate | Less than 1 year (post-BA) |
+| `"Master's degree"` | Master of Arts, Science, Business, etc. | 1–2 years (post-BA) |
+| `"Doctoral degree"` | Ph.D., Ed.D., J.D., M.D., or equivalent | 3–7 years (post-BA) |
+
+---
+
+## CIP Code Structure
+
+CIP (Classification of Instructional Programs) codes are a standardized taxonomy maintained by the National Center for Education Statistics (NCES) to categorize academic programs. Understanding the structure helps you form targeted `find_programs` queries.
+
+### Two-Digit Families vs. Four-Digit Programs
+
+Every CIP code is formatted as `XX.XXXX`. The two digits before the decimal identify the **broad program family** (also called the two-digit series), while the four digits after the decimal identify the **specific program** within that family.
+
+```
+11.0701
+│  └─── Specific program: Computer Science (0701)
+└────── Program family: Computer and Information Sciences (11)
+```
+
+<Tabs>
+  <Tab title="Pass a 2-digit code">
+    Passing a two-digit code (e.g., `"11"`) to `find_programs` returns all programs in that entire family — Computer Science, Information Systems, Cybersecurity, and so on. Use this when you want broad coverage of a discipline.
+
+    ```json
+    {
+      "jsonrpc": "2.0",
+      "method": "tools/call",
+      "params": {
+        "name": "find_programs",
+        "arguments": {
+          "cip_code": "11",
+          "per_page": 20
+        }
+      },
+      "id": 1
+    }
+    ```
+  </Tab>
+  <Tab title="Pass a 4-digit code">
+    Passing a full four-digit code (e.g., `"11.0701"`) narrows results to exactly that program. Use this when you know the specific field of study you are interested in.
+
+    ```json
+    {
+      "jsonrpc": "2.0",
+      "method": "tools/call",
+      "params": {
+        "name": "find_programs",
+        "arguments": {
+          "cip_code": "11.0701",
+          "per_page": 50
+        }
+      },
+      "id": 2
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Common CIP Code Reference
+
+The table below lists frequently queried program families and specific codes.
+
+| CIP Code | Program Title |
+|----------|---------------|
+| `11` | Computer and Information Sciences (family) |
+| `11.0701` | Computer Science |
+| `11.0901` | Computer Systems Networking and Telecommunications |
+| `14` | Engineering (family) |
+| `14.0101` | Engineering, General |
+| `14.0901` | Computer Engineering, General |
+| `26` | Biological and Biomedical Sciences (family) |
+| `26.0101` | Biology/Biological Sciences, General |
+| `51` | Health Professions and Related Programs (family) |
+| `51.3801` | Registered Nursing / Registered Nurse |
+| `52` | Business, Management, Marketing (family) |
+| `52.0201` | Business Administration and Management, General |
+| `52.1301` | Management Science, General |
+
+<Tip>
+  If you are unsure of the CIP code for a field of study, use the `keyword`
+  parameter instead. Passing `"keyword": "computer science"` will match
+  programs whose CIP title contains that phrase, and the returned `cip_code`
+  values give you the exact codes to use in future targeted queries.
+</Tip>

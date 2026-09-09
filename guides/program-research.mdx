@@ -1,0 +1,326 @@
+---
+title: "Research Academic Programs with find_programs"
+sidebarTitle: "Program Research"
+description: "Use find_programs to discover academic programs by keyword or CIP code, scope searches to a school, and combine results with school-level data for full context."
+---
+
+The `find_programs` tool lets you search the College Scorecard's program-level dataset rather than the institution-level dataset. This distinction matters: a school might have strong overall outcomes, but the specific program a student wants to pursue may tell a very different story. Use `find_programs` when a student knows their intended field of study and wants to find — or vet — schools that offer it.
+
+<Note>
+  Program-level earnings data is not universally available. The College Scorecard reports earnings at the program level only when enough graduates from that program are included in federal student loan records to meet minimum privacy thresholds. When a program's earnings field is `null`, it does not indicate the program is poor quality — the data simply was not reportable for that cohort. Supplement program searches with institution-level earnings from `get_school` when program-level data is absent.
+</Note>
+
+## Search by Field Keyword
+
+The simplest way to use `find_programs` is to pass a plain-language `keyword` matching a field of study. The server matches against program titles derived from CIP code descriptions.
+
+The following example finds nursing programs across all schools in the dataset.
+
+```json Request
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "find_programs",
+    "arguments": {
+      "keyword": "nursing",
+      "fields": [
+        "school.name",
+        "school.state",
+        "latest.programs.cip_4_digit.title",
+        "latest.programs.cip_4_digit.code",
+        "latest.programs.cip_4_digit.earnings.median_earnings",
+        "latest.programs.cip_4_digit.counts.ipeds_awards1"
+      ],
+      "per_page": 5
+    }
+  }
+}
+```
+
+```json Response
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"total\": 1842, \"results\": [{\"school.name\": \"Johns Hopkins University\", \"school.state\": \"MD\", \"latest.programs.cip_4_digit.title\": \"Registered Nursing/Registered Nurse\", \"latest.programs.cip_4_digit.code\": \"5138\", \"latest.programs.cip_4_digit.earnings.median_earnings\": 78400, \"latest.programs.cip_4_digit.counts.ipeds_awards1\": 312}, {\"school.name\": \"University of Pennsylvania\", \"school.state\": \"PA\", \"latest.programs.cip_4_digit.title\": \"Registered Nursing/Registered Nurse\", \"latest.programs.cip_4_digit.code\": \"5138\", \"latest.programs.cip_4_digit.earnings.median_earnings\": 81200, \"latest.programs.cip_4_digit.counts.ipeds_awards1\": 198}]}"
+      }
+    ]
+  }
+}
+```
+
+For a more targeted search like "data science", the keyword search surfaces programs spanning CIP codes 11 (Computer Science) and 27 (Mathematics & Statistics), since data science programs are catalogued under both families.
+
+```json Request — Data Science
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "find_programs",
+    "arguments": {
+      "keyword": "data science",
+      "filters": {
+        "state": "CA"
+      },
+      "fields": [
+        "school.name",
+        "school.city",
+        "latest.programs.cip_4_digit.title",
+        "latest.programs.cip_4_digit.code",
+        "latest.programs.cip_4_digit.earnings.median_earnings"
+      ],
+      "per_page": 8
+    }
+  }
+}
+```
+
+## Search by CIP Code
+
+CIP (Classification of Instructional Programs) codes are the federal taxonomy for academic programs. Using a CIP code instead of a keyword produces exact matches — no ambiguity from synonym variation in program titles.
+
+CIP codes come in two levels of precision:
+- **2-digit**: broad field family (e.g., `11` = all Computer Science & IT programs)
+- **4-digit**: specific program type (e.g., `1107` = Computer Science specifically)
+- **6-digit**: most granular (e.g., `110701` = Computer Science, general)
+
+### Common CIP Code Reference
+
+| CIP Code | Field |
+|----------|-------|
+| 11 | Computer Science & IT |
+| 14 | Engineering |
+| 22 | Legal Professions |
+| 26 | Biological Sciences |
+| 40 | Physical Sciences |
+| 42 | Psychology |
+| 45 | Social Sciences |
+| 51 | Health Professions |
+| 52 | Business & Management |
+
+The following example finds all Computer Science programs (CIP family `11`) at schools in Washington State with more than 10,000 students.
+
+```json Request — CIP Code Search
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
+  "params": {
+    "name": "find_programs",
+    "arguments": {
+      "cip_code": "11",
+      "filters": {
+        "state": "WA",
+        "min_size": 10000
+      },
+      "fields": [
+        "school.name",
+        "school.city",
+        "latest.programs.cip_4_digit.title",
+        "latest.programs.cip_4_digit.code",
+        "latest.programs.cip_4_digit.earnings.median_earnings",
+        "latest.programs.cip_4_digit.counts.ipeds_awards1"
+      ]
+    }
+  }
+}
+```
+
+```json Response
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"total\": 7, \"results\": [{\"school.name\": \"University of Washington\", \"school.city\": \"Seattle\", \"latest.programs.cip_4_digit.title\": \"Computer Science\", \"latest.programs.cip_4_digit.code\": \"1107\", \"latest.programs.cip_4_digit.earnings.median_earnings\": 121000, \"latest.programs.cip_4_digit.counts.ipeds_awards1\": 624}, {\"school.name\": \"Washington State University\", \"school.city\": \"Pullman\", \"latest.programs.cip_4_digit.title\": \"Computer Science\", \"latest.programs.cip_4_digit.code\": \"1107\", \"latest.programs.cip_4_digit.earnings.median_earnings\": 93400, \"latest.programs.cip_4_digit.counts.ipeds_awards1\": 218}]}"
+      }
+    ]
+  }
+}
+```
+
+<Tip>
+  When you need to match a very specific program — for example, distinguishing "Computer Engineering" (CIP `1409`) from "Computer Science" (CIP `1107`) — always use the 4-digit CIP code. Keyword searches may return both when you only want one.
+</Tip>
+
+## Find All Programs at a Specific School
+
+To see the full program catalog for one institution, pass its College Scorecard numeric ID as `school_id`. This is useful for confirming that a school offers a student's intended major before doing deeper research.
+
+```json Request — Programs at MIT
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "method": "tools/call",
+  "params": {
+    "name": "find_programs",
+    "arguments": {
+      "school_id": 166683,
+      "fields": [
+        "latest.programs.cip_4_digit.title",
+        "latest.programs.cip_4_digit.code",
+        "latest.programs.cip_4_digit.earnings.median_earnings",
+        "latest.programs.cip_4_digit.counts.ipeds_awards1"
+      ]
+    }
+  }
+}
+```
+
+```json Response
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"school_id\": 166683, \"school.name\": \"Massachusetts Institute of Technology\", \"programs\": [{\"latest.programs.cip_4_digit.title\": \"Computer Science\", \"latest.programs.cip_4_digit.code\": \"1107\", \"latest.programs.cip_4_digit.earnings.median_earnings\": 168000, \"latest.programs.cip_4_digit.counts.ipeds_awards1\": 481}, {\"latest.programs.cip_4_digit.title\": \"Electrical and Electronics Engineering\", \"latest.programs.cip_4_digit.code\": \"1410\", \"latest.programs.cip_4_digit.earnings.median_earnings\": 154000, \"latest.programs.cip_4_digit.counts.ipeds_awards1\": 312}, {\"latest.programs.cip_4_digit.title\": \"Physics, General\", \"latest.programs.cip_4_digit.code\": \"4008\", \"latest.programs.cip_4_digit.earnings.median_earnings\": null, \"latest.programs.cip_4_digit.counts.ipeds_awards1\": 87}]}"
+      }
+    ]
+  }
+}
+```
+
+Notice that Physics has a `null` earnings value — the cohort was too small to report. This is a normal occurrence for less common programs at any school.
+
+## Combine find_programs and get_school for Full Context
+
+Program-level data alone rarely tells the whole story. A school might have excellent program-level earnings but poor graduation rates, high debt loads, or a remote location that affects a student's preferences. Chain `find_programs` with `get_school` to get both layers.
+
+<Steps>
+  <Step title="Identify target schools via find_programs">
+    Run `find_programs` to build a list of schools that offer the target program with the best earnings outcomes.
+
+    ```json Request
+    {
+      "jsonrpc": "2.0",
+      "id": 5,
+      "method": "tools/call",
+      "params": {
+        "name": "find_programs",
+        "arguments": {
+          "keyword": "business administration",
+          "cip_code": "5202",
+          "filters": {
+            "state": "NY",
+            "ownership": 2
+          },
+          "fields": [
+            "id",
+            "school.name",
+            "latest.programs.cip_4_digit.earnings.median_earnings"
+          ],
+          "sort": "latest.programs.cip_4_digit.earnings.median_earnings:desc",
+          "per_page": 5
+        }
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Pull full school profiles for the top results">
+    Take the `id` values from the results and call `get_school` for each to enrich the picture with institution-level data.
+
+    ```json Request
+    {
+      "jsonrpc": "2.0",
+      "id": 6,
+      "method": "tools/call",
+      "params": {
+        "name": "get_school",
+        "arguments": {
+          "school_id": 190150,
+          "fields": [
+            "school.name",
+            "school.city",
+            "latest.student.size",
+            "latest.admissions.admission_rate.overall",
+            "latest.completion.completion_rate_4yr_150nt",
+            "latest.earnings.10_yrs_after_entry.median",
+            "latest.cost.avg_net_price.overall",
+            "latest.cost.tuition.in_state",
+            "latest.cost.tuition.out_of_state",
+            "latest.aid.median_debt.completers.overall"
+          ]
+        }
+      }
+    }
+    ```
+
+    ```json Response
+    {
+      "jsonrpc": "2.0",
+      "id": 6,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"id\": 190150, \"school.name\": \"New York University\", \"school.city\": \"New York\", \"latest.student.size\": 51848, \"latest.admissions.admission_rate.overall\": 0.127, \"latest.completion.completion_rate_4yr_150nt\": 0.842, \"latest.earnings.10_yrs_after_entry.median\": 68200, \"latest.cost.avg_net_price.overall\": 37420, \"latest.cost.tuition.in_state\": 57994, \"latest.cost.tuition.out_of_state\": 57994, \"latest.aid.median_debt.completers.overall\": 27000}"
+          }
+        ]
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Synthesize the combined picture">
+    With both data layers in hand, you can now reason about the full cost-to-outcome equation: what does a student pay (`avg_net_price`, `median_debt`), what are the realistic earnings at the program level vs. institution level, and how likely are they to graduate (`completion_rate_4yr_150nt`)?
+
+    A useful heuristic: if the program-level median earnings are significantly higher than the institution-wide median, the program is a strong driver of outcomes at that school and the program-level figure is more predictive for that student.
+  </Step>
+</Steps>
+
+## Compare a Program Across Multiple Schools
+
+To compare how a specific program stacks up at different institutions, combine `find_programs` (scoped to a CIP code) with state or ownership filters, then pass the resulting school IDs to `compare_schools`.
+
+```json Request — Business Admin at Top Schools in Illinois
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "method": "tools/call",
+  "params": {
+    "name": "find_programs",
+    "arguments": {
+      "cip_code": "5202",
+      "filters": {
+        "state": "IL",
+        "ownership": 2,
+        "min_size": 3000
+      },
+      "fields": [
+        "id",
+        "school.name",
+        "latest.programs.cip_4_digit.title",
+        "latest.programs.cip_4_digit.earnings.median_earnings",
+        "latest.cost.avg_net_price.overall"
+      ],
+      "sort": "latest.programs.cip_4_digit.earnings.median_earnings:desc",
+      "per_page": 6
+    }
+  }
+}
+```
+
+Once you have the IDs, feed them directly to `compare_schools` to place cost, admissions, and graduation data side by side for a decision-ready summary.
+
+<Accordion title="Understanding counts.ipeds_awards1">
+  The `latest.programs.cip_4_digit.counts.ipeds_awards1` field reports the number of awards (degrees, certificates) conferred in that program in the most recent IPEDS reporting year. It is a useful proxy for program maturity and scale: a program that conferred fewer than 10 awards may be newly launched, under-resourced, or difficult to get into, even if its earnings data looks strong.
+</Accordion>
+
+<Accordion title="Why some CIP codes return no results">
+  Not every school reports program-level data to the College Scorecard, and some programs below a certain enrollment threshold are suppressed entirely. If a `find_programs` call returns zero results for a school you expect to offer a program, try broadening the CIP code from 4-digit to 2-digit, or fall back to `get_school` and inspect the `latest.programs.cip_4_digit` array in the full profile — the program may be present without earnings data attached.
+</Accordion>
+
+<Accordion title="Sorting and pagination">
+  The `find_programs` tool supports `sort` in the format `field:asc` or `field:desc`, and `per_page` up to 100 results per call. Use `page` (zero-indexed) to paginate through large result sets. For broad keyword searches that return thousands of matches (e.g., "science"), add geographic or size filters to keep results meaningful.
+</Accordion>

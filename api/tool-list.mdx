@@ -1,0 +1,209 @@
+---
+title: "Tool List: Available MCP Tools and Schemas"
+sidebarTitle: "Tool List"
+description: "Retrieve the full MCP tool manifest via GET /mcp or tools/list, with input schemas for all four College Scorecard tools."
+---
+
+The College Scorecard MCP server publishes a machine-readable manifest that describes every tool it exposes — including each tool's name, description, and full JSON Schema for its input parameters. MCP-compatible clients fetch this manifest automatically during session initialization, so your AI assistant always has an up-to-date picture of what the server can do. You can also retrieve the manifest manually at any time for debugging or integration purposes.
+
+## How to Retrieve the Tool List
+
+<Tabs>
+  <Tab title="HTTP GET">
+    Send a GET request to the MCP endpoint. This is the simplest way to inspect the manifest from a terminal or browser.
+
+    ```bash
+    curl https://your-service.example.com/mcp
+    ```
+  </Tab>
+  <Tab title="JSON-RPC tools/list">
+    Send a `tools/list` JSON-RPC call via POST. Use this form when you need the manifest inside a programmatic workflow that already speaks JSON-RPC 2.0.
+
+    ```bash
+    curl -X POST https://your-service.example.com/mcp \
+      -H "Content-Type: application/json" \
+      -d '{
+        "jsonrpc": "2.0",
+        "method": "tools/list",
+        "params": {},
+        "id": 1
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  MCP-compatible clients (Claude Desktop, Cursor, Windsurf, and similar) call
+  `tools/list` automatically as part of their session handshake. You do not need
+  to fetch the manifest yourself when using a supported client.
+</Note>
+
+## Full Tool Manifest
+
+The response below is the complete `tools/list` payload returned by the server. Each entry in the `tools` array includes a `name`, a human-readable `description`, and an `inputSchema` object that follows [JSON Schema draft-07](https://json-schema.org/draft-07/json-schema-release-notes.html).
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "tools": [
+      {
+        "name": "search_schools",
+        "description": "Search U.S. colleges and universities by name, location, type, or scorecard attributes.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Text search query (school name or keyword)"
+            },
+            "filters": {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "type": "string",
+                  "description": "Two-letter state code"
+                },
+                "ownership": {
+                  "type": "string",
+                  "enum": ["public", "private_nonprofit", "private_for_profit"]
+                },
+                "locale": {
+                  "type": "string",
+                  "enum": ["city", "suburb", "town", "rural"]
+                },
+                "max_net_price": { "type": "integer" },
+                "min_graduation_rate": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "max_admission_rate": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "min_student_size": { "type": "integer" },
+                "max_student_size": { "type": "integer" }
+              }
+            },
+            "sort_by": {
+              "type": "string",
+              "enum": [
+                "name",
+                "admission_rate",
+                "graduation_rate_4yr",
+                "avg_net_price",
+                "median_earnings_10yr"
+              ]
+            },
+            "sort_order": {
+              "type": "string",
+              "enum": ["asc", "desc"]
+            },
+            "page": { "type": "integer", "default": 0 },
+            "per_page": {
+              "type": "integer",
+              "default": 10,
+              "maximum": 100
+            }
+          }
+        }
+      },
+      {
+        "name": "get_school",
+        "description": "Retrieve the full College Scorecard profile for a single institution by its numeric ID.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "description": "College Scorecard school ID"
+            }
+          },
+          "required": ["id"]
+        }
+      },
+      {
+        "name": "compare_schools",
+        "description": "Compare 2–5 institutions side by side across cost, admissions, and outcomes metrics.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "ids": {
+              "type": "array",
+              "items": { "type": "integer" },
+              "minItems": 2,
+              "maxItems": 5
+            },
+            "fields": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          },
+          "required": ["ids"]
+        }
+      },
+      {
+        "name": "find_programs",
+        "description": "Search academic programs and fields of study by keyword, CIP code, or school.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "keyword": { "type": "string" },
+            "cip_code": {
+              "type": "string",
+              "description": "2- or 4-digit CIP classification code"
+            },
+            "school_id": { "type": "integer" },
+            "page": { "type": "integer", "default": 0 },
+            "per_page": {
+              "type": "integer",
+              "default": 10,
+              "maximum": 100
+            }
+          }
+        }
+      }
+    ]
+  },
+  "id": 1
+}
+```
+
+## Tool Summary
+
+The four tools cover the primary use cases for exploring U.S. higher education data. Use the cards below as a quick navigation guide to each tool's detailed reference.
+
+<CardGroup cols={2}>
+  <Card title="search_schools" icon="magnifying-glass" href="/api/schools">
+    Search colleges and universities by name, location, ownership type, cost,
+    selectivity, and outcomes. Returns a paginated list of school objects.
+  </Card>
+  <Card title="get_school" icon="building-columns" href="/api/schools">
+    Fetch the complete College Scorecard profile for a single school by its
+    numeric ID. Returns one school object with all available data fields.
+  </Card>
+  <Card title="compare_schools" icon="arrow-right-arrow-left" href="/api/schools">
+    Accept 2–5 school IDs and return their profiles side by side, optionally
+    limited to a specific subset of fields for a focused comparison.
+  </Card>
+  <Card title="find_programs" icon="book-open" href="/api/programs">
+    Search academic programs by keyword or CIP code, optionally scoped to a
+    single institution. Returns program-level earnings and credential data.
+  </Card>
+</CardGroup>
+
+## Input Schema Notes
+
+<Accordion title="Required vs. optional parameters">
+  Parameters listed under `required` in a tool's `inputSchema` must be present in every call. All other parameters are optional. When an optional parameter is omitted, the server applies the default value specified in the schema (e.g., `page` defaults to `0`, `per_page` defaults to `10`).
+</Accordion>
+
+<Accordion title="Enum validation">
+  Fields with an `enum` constraint (such as `ownership`, `locale`, `sort_by`, and `sort_order`) only accept the exact string values listed. Passing an unlisted value results in a `-32602 Invalid Params` error. Values are case-sensitive.
+</Accordion>
+
+<Accordion title="Pagination parameters">
+  Both `search_schools` and `find_programs` support `page` (zero-indexed) and `per_page` (maximum 100). To retrieve the second page of 20 results, pass `"page": 1, "per_page": 20`. The total number of matching records is returned in the `total` field of the response so you can calculate how many pages exist.
+</Accordion>

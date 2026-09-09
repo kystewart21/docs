@@ -1,47 +1,204 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "Get Started with College Scorecard MCP"
+sidebarTitle: "Quickstart"
+description: "Connect an MCP-compatible AI client to the College Scorecard MCP server and make your first college data query in minutes."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
+This guide walks you through connecting an MCP-compatible AI client to the College Scorecard MCP server and making your first live tool call against the U.S. Department of Education's College Scorecard dataset. The entire setup takes less than five minutes, and you won't need to create any accounts or configure any API keys.
 
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
-
-## Prerequisites
-
-Before you begin, you must have:
-
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
-
-## Get started
+<Note>
+  No API key setup is required on the client side. The College Scorecard MCP server handles all authentication with the upstream data source automatically. Simply point your MCP client at the endpoint and start querying.
+</Note>
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
 
-    ```bash
-    npm install your-package
-    ```
-  </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
+  <Step title="Choose an MCP-Compatible AI Client">
+    The College Scorecard MCP server speaks the [Model Context Protocol](https://modelcontextprotocol.io), an open standard that lets AI assistants discover and invoke external tools. Any MCP-compatible client can connect to it.
 
-    ```bash
-    your-cli init
-    ```
-  </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+    Popular options include:
 
-    ```bash
-    your-cli start
-    ```
+    - **[Claude Desktop](https://claude.ai/download)** — Anthropic's desktop app with built-in MCP support. Ideal for interactive college research.
+    - **[Cursor](https://cursor.sh)** — An AI-powered code editor that supports MCP tool calls, useful for developers building college data applications.
+    - **Any MCP client** — Any application that implements the MCP client specification can connect to the endpoint.
+
+    Choose the client that best fits your workflow and proceed to the next step.
   </Step>
+
+  <Step title="Configure the MCP Endpoint">
+    Point your MCP client at the College Scorecard MCP server endpoint:
+
+    ```
+    https://your-service.example.com/mcp
+    ```
+
+    The exact configuration format depends on your client.
+
+    <Tabs>
+      <Tab title="Claude Desktop">
+        Open or create the Claude Desktop configuration file at:
+
+        - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+        - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+        Add the College Scorecard MCP server under the `mcpServers` key:
+
+        ```json claude_desktop_config.json
+        {
+          "mcpServers": {
+            "college-scorecard": {
+              "url": "https://your-service.example.com/mcp",
+              "transport": "http"
+            }
+          }
+        }
+        ```
+
+        Save the file and restart Claude Desktop. The College Scorecard tools will appear automatically in Claude's tool list.
+      </Tab>
+      <Tab title="Generic MCP Client">
+        For any MCP-compatible client, supply the following connection configuration:
+
+        ```json mcp-config.json
+        {
+          "servers": [
+            {
+              "name": "college-scorecard",
+              "transport": {
+                "type": "http",
+                "url": "https://your-service.example.com/mcp"
+              }
+            }
+          ]
+        }
+        ```
+
+        Refer to your client's documentation for exactly where to place this configuration. Most clients accept a JSON config file or an equivalent settings UI.
+      </Tab>
+      <Tab title="Cursor">
+        Open Cursor's settings and navigate to **Features → MCP Servers**. Add a new server entry with the following values:
+
+        ```json
+        {
+          "name": "college-scorecard",
+          "url": "https://your-service.example.com/mcp",
+          "transport": "http"
+        }
+        ```
+
+        Save your settings. Cursor will discover and register the College Scorecard tools immediately.
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Verify the Connection">
+    Once your client is configured, verify that it can reach the MCP server and discover the available tools.
+
+    In your AI client, send a prompt like:
+
+    > *"What tools do you have available for college data?"*
+
+    A successful connection returns a list of all four College Scorecard MCP tools:
+
+    ```
+    Available tools:
+    - search_schools: Search for schools by name, location, and other criteria
+    - get_school: Retrieve detailed data for a specific school by ID
+    - compare_schools: Compare multiple schools side by side
+    - find_programs: Find schools offering specific academic programs by CIP code
+    ```
+
+    <Tip>
+      If the tools don't appear, double-check that the `url` in your config exactly matches `https://your-service.example.com/mcp` and that your client was fully restarted after saving the config file.
+    </Tip>
+  </Step>
+
+  <Step title="Make Your First Tool Call">
+    With the connection verified, try a real college data query. Ask your AI assistant:
+
+    > *"Search for schools named MIT in Massachusetts."*
+
+    The assistant translates your natural language prompt into a `search_schools` tool call and sends the following JSON-RPC request to the MCP server:
+
+    <CodeGroup>
+      ```json Request
+      {
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "name": "search_schools",
+          "arguments": {
+            "query": "MIT",
+            "filters": {
+              "state": "MA"
+            }
+          }
+        },
+        "id": 1
+      }
+      ```
+
+      ```json Response
+      {
+        "jsonrpc": "2.0",
+        "result": {
+          "schools": [
+            {
+              "id": 166683,
+              "name": "Massachusetts Institute of Technology",
+              "city": "Cambridge",
+              "state": "MA",
+              "ownership": "Private nonprofit",
+              "student_size": 11574,
+              "admission_rate": 0.04,
+              "median_earnings_10yr": 91700,
+              "avg_net_price": 21917
+            }
+          ],
+          "total": 1,
+          "page": 0,
+          "per_page": 10
+        },
+        "id": 1
+      }
+      ```
+    </CodeGroup>
+
+    The assistant then interprets this response and replies in natural language — for example:
+
+    > *"Massachusetts Institute of Technology (MIT) is a private nonprofit university in Cambridge, MA. It has an acceptance rate of about 4%, an average net price of $21,917/year, and median earnings of $91,700 ten years after enrollment."*
+
+    You're now fully connected and ready to explore College Scorecard data through your AI assistant.
+  </Step>
+
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+## What to Try Next
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+Now that you're connected, here are some queries to explore the full power of the College Scorecard MCP:
+
+<CardGroup cols={2}>
+  <Card title="Compare Schools" icon="code-compare">
+    *"Compare MIT, Caltech, and Stanford on tuition, graduation rates, and median earnings."*
+
+    Uses the `compare_schools` tool to pull side-by-side data for multiple institutions.
+  </Card>
+  <Card title="Find Programs" icon="book-open">
+    *"Which schools in New York offer Computer Science programs?"*
+
+    Uses the `find_programs` tool with CIP code 11.0701 to find matching institutions.
+  </Card>
+  <Card title="Get School Details" icon="school">
+    *"Give me full details on UC Berkeley."*
+
+    Uses the `get_school` tool to return the complete College Scorecard profile for a single institution.
+  </Card>
+  <Card title="Filter by Cost" icon="dollar-sign">
+    *"Find public universities in the Midwest with in-state tuition under $15,000."*
+
+    Uses `search_schools` with cost and ownership filters to narrow results.
+  </Card>
+</CardGroup>
+
+<Info>
+  All data returned by the College Scorecard MCP comes directly from the U.S. Department of Education's College Scorecard database. Data is updated annually following the Department's release schedule.
+</Info>

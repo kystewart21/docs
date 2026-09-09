@@ -1,0 +1,141 @@
+---
+title: "get_school: Full Scorecard Profile for a College"
+sidebarTitle: "get_school"
+description: "Use get_school to retrieve the complete College Scorecard profile for a single institution — tuition, test scores, outcomes, and more — by school ID."
+---
+
+The `get_school` tool retrieves the complete College Scorecard profile for a single institution identified by its numeric school ID. While `search_schools` returns a summarized view of many schools, `get_school` goes deeper — returning detailed cost breakdowns (in-state and out-of-state tuition, average net price), standardized test score midpoints, 4-year graduation rate, median earnings, total program count, and more. Use this tool when you need the full picture on a specific school before presenting a recommendation or running an analysis.
+
+<Note>
+School IDs are the numeric identifiers assigned by the College Scorecard dataset. The easiest way to find an ID is to call `search_schools` first and read the `id` field from any result. You can also look up IDs on the [College Scorecard website](https://collegescorecard.ed.gov).
+</Note>
+
+## Parameters
+
+<ParamField body="id" type="integer" required>
+  The College Scorecard numeric school ID for the institution you want to retrieve. For example, `166683` is the ID for the Massachusetts Institute of Technology. This value is returned in the `id` field of every `search_schools` result.
+</ParamField>
+
+## Response
+
+<ResponseField name="id" type="integer">
+  The College Scorecard numeric school ID.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The institution's official name (`school.name`).
+</ResponseField>
+
+<ResponseField name="city" type="string">
+  City of the main campus (`school.city`).
+</ResponseField>
+
+<ResponseField name="state" type="string">
+  Two-letter state code (`school.state`).
+</ResponseField>
+
+<ResponseField name="ownership" type="string">
+  Ownership type: `"Public"`, `"Private nonprofit"`, or `"Private for-profit"` (`school.ownership`).
+</ResponseField>
+
+<ResponseField name="student_size" type="integer">
+  Total undergraduate enrollment (`latest.student.size`).
+</ResponseField>
+
+<ResponseField name="admission_rate" type="number">
+  Overall admission rate as a decimal, e.g. `0.04` means 4% (`latest.admissions.admission_rate.overall`). `null` if not reported.
+</ResponseField>
+
+<ResponseField name="graduation_rate_4yr" type="number">
+  4-year graduation rate within 150% of normal time as a decimal (`latest.completion.completion_rate_4yr_150nt`). `null` if not reported.
+</ResponseField>
+
+<ResponseField name="median_earnings_10yr" type="integer">
+  Median earnings 10 years after entry in dollars (`latest.earnings.10_yrs_after_entry.median`). `null` if not reported.
+</ResponseField>
+
+<ResponseField name="avg_net_price" type="integer">
+  Average net price for all students in dollars per year (`latest.cost.avg_net_price.overall`). `null` if not reported.
+</ResponseField>
+
+<ResponseField name="in_state_tuition" type="integer">
+  Published in-state tuition and fees in dollars (`latest.cost.tuition.in_state`). `null` for schools that don't differentiate.
+</ResponseField>
+
+<ResponseField name="out_of_state_tuition" type="integer">
+  Published out-of-state tuition and fees in dollars (`latest.cost.tuition.out_of_state`). `null` for schools that don't differentiate.
+</ResponseField>
+
+<ResponseField name="sat_math_midpoint" type="integer">
+  SAT Math section 50th-percentile score for admitted students. `null` if not reported or if the school is test-optional and does not report.
+</ResponseField>
+
+<ResponseField name="sat_reading_midpoint" type="integer">
+  SAT Evidence-Based Reading and Writing 50th-percentile score for admitted students. `null` if not reported.
+</ResponseField>
+
+<ResponseField name="act_midpoint" type="integer">
+  ACT Composite 50th-percentile score for admitted students. `null` if not reported.
+</ResponseField>
+
+<ResponseField name="programs_count" type="integer">
+  Total number of distinct academic programs offered at the institution, based on 4-digit CIP codes (`latest.programs.cip_4_digit`).
+</ResponseField>
+
+## Example
+
+The following request fetches the full Scorecard profile for the Massachusetts Institute of Technology (school ID `166683`).
+
+<CodeGroup>
+```json Request
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "get_school",
+    "arguments": { "id": 166683 }
+  },
+  "id": 1
+}
+```
+
+```json Response
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "id": 166683,
+    "name": "Massachusetts Institute of Technology",
+    "city": "Cambridge",
+    "state": "MA",
+    "ownership": "Private nonprofit",
+    "student_size": 11574,
+    "admission_rate": 0.04,
+    "graduation_rate_4yr": 0.94,
+    "median_earnings_10yr": 91700,
+    "avg_net_price": 21917,
+    "in_state_tuition": 57590,
+    "out_of_state_tuition": 57590,
+    "sat_math_midpoint": 790,
+    "sat_reading_midpoint": 740,
+    "act_midpoint": 35,
+    "programs_count": 62
+  },
+  "id": 1
+}
+```
+</CodeGroup>
+
+## Common Use Patterns
+
+<CardGroup cols={2}>
+  <Card title="Profile after search" icon="arrow-right">
+    Call `search_schools` to find candidates, then call `get_school` with each returned `id` to enrich the result with full tuition and test score data.
+  </Card>
+  <Card title="Validate a known school" icon="circle-check">
+    If you already know a school's Scorecard ID (e.g., from a saved list or a user-provided link), call `get_school` directly to verify current data without an intermediate search.
+  </Card>
+</CardGroup>
+
+<Warning>
+In-state and out-of-state tuition figures reflect published sticker prices, not the actual amount students pay. For a more accurate representation of cost for a given student, refer to `avg_net_price`, which accounts for grants and scholarships.
+</Warning>

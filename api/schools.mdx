@@ -1,0 +1,259 @@
+---
+title: "Schools Endpoint: Request and Response Reference"
+sidebarTitle: "Schools"
+description: "Full response field reference for search_schools, get_school, and compare_schools, including all cost, admissions, and outcomes fields."
+---
+
+The three school-focused tools — `search_schools`, `get_school`, and `compare_schools` — all return data shaped around a common **school object**. This page documents every field in that object, explains what `null` values mean, and shows the paginated list wrapper that `search_schools` uses to return multiple results. Use this reference when building prompts, processing tool output programmatically, or validating that the data you receive matches your expectations.
+
+## The School Object
+
+Every school record returned by the MCP server is drawn from the U.S. Department of Education's College Scorecard dataset. Fields map directly to College Scorecard variables; the server normalizes field names into snake_case for consistency.
+
+<Note>
+  A `null` value for any field means the institution did not report that data
+  point in the most recent College Scorecard dataset release. This is common
+  for selective metrics (e.g., SAT scores at open-admission schools) and for
+  earnings data at institutions with small graduating cohorts.
+</Note>
+
+### Identity and Location
+
+<ResponseField name="id" type="integer" required>
+  The unique numeric identifier assigned to the institution by the College Scorecard dataset. Use this value as the `id` parameter in `get_school` and as an element in the `ids` array for `compare_schools`.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  The institution's official name as recorded in the College Scorecard dataset (e.g., `"Massachusetts Institute of Technology"`).
+</ResponseField>
+
+<ResponseField name="city" type="string" required>
+  The city where the institution's primary campus is located.
+</ResponseField>
+
+<ResponseField name="state" type="string" required>
+  The two-letter U.S. state or territory abbreviation for the institution's primary campus (e.g., `"MA"`, `"CA"`, `"PR"`).
+</ResponseField>
+
+<ResponseField name="zip" type="string" required>
+  The ZIP code for the institution's primary campus. May include the ZIP+4 suffix.
+</ResponseField>
+
+<ResponseField name="url" type="string" required>
+  The institution's primary website URL as recorded in the dataset (e.g., `"www.mit.edu"`). The value may or may not include a protocol prefix.
+</ResponseField>
+
+### Institutional Characteristics
+
+<ResponseField name="ownership" type="string" required>
+  Indicates who operates the institution. One of:
+  - `"Public"` — Operated by a government entity (state, local, or federal)
+  - `"Private nonprofit"` — Operated by a private nonprofit organization
+  - `"Private for-profit"` — Operated by a private for-profit company
+</ResponseField>
+
+<ResponseField name="locale" type="string" required>
+  Describes the geographic setting of the campus using the NCES locale classification. One of:
+  - `"City"` — Located in a city
+  - `"Suburb"` — Located in a suburb of a city
+  - `"Town"` — Located in a town
+  - `"Rural"` — Located in a rural area
+</ResponseField>
+
+<ResponseField name="student_size" type="integer | null">
+  Total undergraduate enrollment count for the most recent academic year in the dataset.
+</ResponseField>
+
+### Admissions
+
+<ResponseField name="admission_rate" type="number | null">
+  The overall admission rate expressed as a decimal between `0.0` and `1.0`. For example, `0.065` means 6.5 % of applicants were admitted. Returns `null` for open-admission institutions that do not track this metric.
+
+  Maps to `latest.admissions.admission_rate.overall` in the College Scorecard API.
+</ResponseField>
+
+<ResponseField name="sat_math_midpoint" type="integer | null">
+  The midpoint (50th percentile) SAT Math section score for enrolled students, on the 200–800 scale.
+</ResponseField>
+
+<ResponseField name="sat_reading_midpoint" type="integer | null">
+  The midpoint (50th percentile) SAT Evidence-Based Reading and Writing section score for enrolled students, on the 200–800 scale.
+</ResponseField>
+
+<ResponseField name="act_midpoint" type="integer | null">
+  The midpoint (50th percentile) composite ACT score for enrolled students, on the 1–36 scale.
+</ResponseField>
+
+### Graduation and Completion
+
+<ResponseField name="graduation_rate_4yr" type="number | null">
+  The 4-year completion rate for first-time, full-time undergraduate students who complete their degree within 150% of normal time (i.e., within 6 years for a 4-year program). Expressed as a decimal between `0.0` and `1.0`.
+
+  Maps to `latest.completion.completion_rate_4yr_150nt`.
+</ResponseField>
+
+<ResponseField name="graduation_rate_6yr" type="number | null">
+  The 6-year completion rate, using the same 150%-of-normal-time methodology but for programs designed to take 6 years. Expressed as a decimal between `0.0` and `1.0`.
+</ResponseField>
+
+### Cost and Net Price
+
+<ResponseField name="avg_net_price" type="integer | null">
+  The average net price of attendance (in USD) after grants and scholarships are applied, across all students receiving Title IV federal financial aid. This is typically lower than the sticker price for most students.
+
+  Maps to `latest.cost.avg_net_price.overall`.
+</ResponseField>
+
+<ResponseField name="in_state_tuition" type="integer | null">
+  Annual in-state tuition and required fees in USD. Applicable primarily to public institutions; may be `null` for private schools that do not distinguish residency.
+
+  Maps to `latest.cost.tuition.in_state`.
+</ResponseField>
+
+<ResponseField name="out_of_state_tuition" type="integer | null">
+  Annual out-of-state tuition and required fees in USD.
+
+  Maps to `latest.cost.tuition.out_of_state`.
+</ResponseField>
+
+### Post-Graduation Earnings
+
+<ResponseField name="median_earnings_10yr" type="integer | null">
+  Median annual earnings (in USD) of students who received federal financial aid, measured 10 years after they first enrolled. Provides a longer-horizon signal of economic outcomes.
+
+  Maps to `latest.earnings.10_yrs_after_entry.median`.
+</ResponseField>
+
+<ResponseField name="median_earnings_6yr" type="integer | null">
+  Median annual earnings (in USD) of students who received federal financial aid, measured 6 years after they first enrolled.
+</ResponseField>
+
+### Programs
+
+<ResponseField name="programs_count" type="integer" required>
+  The total number of distinct academic programs (by CIP code) offered by the institution in the most recent dataset release. Use the `find_programs` tool to explore individual program records.
+</ResponseField>
+
+---
+
+## Paginated List Response (search_schools)
+
+The `search_schools` tool wraps an array of school objects in a pagination envelope. All four fields are always present in the response.
+
+<ResponseField name="schools" type="array">
+  An array of school objects matching the query and filters. Each element conforms to the school object schema documented above. The array may be empty (`[]`) if no results match.
+</ResponseField>
+
+<ResponseField name="total" type="integer" required>
+  The total number of institutions matching the query and filters across all pages, not just the current page. Use this value together with `per_page` to calculate the total number of pages: `Math.ceil(total / per_page)`.
+</ResponseField>
+
+<ResponseField name="page" type="integer" required>
+  The zero-indexed page number of the current result set. The first page is `0`.
+</ResponseField>
+
+<ResponseField name="per_page" type="integer" required>
+  The number of results per page that was applied to this response. Reflects the value you passed in the request, or the default of `10` if you omitted it.
+</ResponseField>
+
+### Example Paginated Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "schools": [
+      {
+        "id": 166683,
+        "name": "Massachusetts Institute of Technology",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02139-4307",
+        "ownership": "Private nonprofit",
+        "locale": "City",
+        "student_size": 11520,
+        "admission_rate": 0.0396,
+        "graduation_rate_4yr": 0.9453,
+        "graduation_rate_6yr": null,
+        "avg_net_price": 18269,
+        "in_state_tuition": 57986,
+        "out_of_state_tuition": 57986,
+        "sat_math_midpoint": 790,
+        "sat_reading_midpoint": 760,
+        "act_midpoint": 35,
+        "median_earnings_10yr": 99972,
+        "median_earnings_6yr": 82200,
+        "programs_count": 87,
+        "url": "web.mit.edu"
+      }
+    ],
+    "total": 1,
+    "page": 0,
+    "per_page": 10
+  },
+  "id": 1
+}
+```
+
+## Single School Response (get_school)
+
+The `get_school` tool returns a single school object directly in `result` — there is no pagination wrapper.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "id": 166683,
+    "name": "Massachusetts Institute of Technology",
+    "city": "Cambridge",
+    "state": "MA",
+    "zip": "02139-4307",
+    "ownership": "Private nonprofit",
+    "locale": "City",
+    "student_size": 11520,
+    "admission_rate": 0.0396,
+    "graduation_rate_4yr": 0.9453,
+    "graduation_rate_6yr": null,
+    "avg_net_price": 18269,
+    "in_state_tuition": 57986,
+    "out_of_state_tuition": 57986,
+    "sat_math_midpoint": 790,
+    "sat_reading_midpoint": 760,
+    "act_midpoint": 35,
+    "median_earnings_10yr": 99972,
+    "median_earnings_6yr": 82200,
+    "programs_count": 87,
+    "url": "web.mit.edu"
+  },
+  "id": 2
+}
+```
+
+## Comparison Response (compare_schools)
+
+The `compare_schools` tool returns a `schools` array containing one school object per requested ID. The array order matches the order of IDs you supplied. If you passed an optional `fields` array, each school object will contain only the requested fields plus `id` and `name` for identification.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "schools": [
+      {
+        "id": 166683,
+        "name": "Massachusetts Institute of Technology",
+        "avg_net_price": 18269,
+        "graduation_rate_4yr": 0.9453,
+        "median_earnings_10yr": 99972
+      },
+      {
+        "id": 243744,
+        "name": "Stanford University",
+        "avg_net_price": 17000,
+        "graduation_rate_4yr": 0.9437,
+        "median_earnings_10yr": 98700
+      }
+    ]
+  },
+  "id": 3
+}
+```

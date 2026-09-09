@@ -1,0 +1,90 @@
+{
+  "projectType": "api-service",
+  "projectName": "College Scorecard MCP",
+  "projectDescription": "An MCP (Model Context Protocol) server that wraps the U.S. Department of Education's College Scorecard API, enabling AI assistants and agents to search schools, compare institutions, and explore programs using natural language.",
+  "theme": "luma",
+  "primaryColor": "#d83933",
+  "lightColor": "#23639c",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "authentication"
+            ]
+          },
+          {
+            "group": "MCP Tools",
+            "pages": [
+              "tools/overview",
+              "tools/search-schools",
+              "tools/get-school",
+              "tools/compare-schools",
+              "tools/find-programs"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/connecting-ai-agents",
+              "guides/school-comparison",
+              "guides/program-research"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/data-fields",
+              "reference/filters-and-sorting",
+              "reference/faq"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "MCP Endpoint",
+            "pages": [
+              "api/overview",
+              "api/tool-list",
+              "api/error-codes"
+            ]
+          },
+          {
+            "group": "College Scorecard Data",
+            "pages": [
+              "api/schools",
+              "api/programs"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "MCP-native server exposing College Scorecard data to AI assistants and agents",
+    "search_schools tool for full-text and filtered school searches",
+    "get_school tool for retrieving detailed data on a single institution",
+    "compare_schools tool for side-by-side institutional comparisons",
+    "find_programs tool for discovering programs by field of study or CIP code",
+    "Server-side API key management — no credentials exposed to clients",
+    "Public HTTPS MCP endpoint ready for immediate integration",
+    "Backed by the U.S. Department of Education's official College Scorecard dataset"
+  ],
+  "publicApiSurface": [
+    "POST /mcp — MCP protocol endpoint (tool calls, tool listing)",
+    "tool: search_schools(query, filters) — search institutions by name, location, or attributes",
+    "tool: get_school(id) — retrieve full scorecard data for a single school",
+    "tool: compare_schools(ids[]) — compare two or more institutions side-by-side",
+    "tool: find_programs(cip_code?, keyword?, school_id?) — discover academic programs and fields of study",
+    "GET /mcp — tool list discovery endpoint"
+  ]
+}

@@ -1,0 +1,179 @@
+---
+title: "search_schools: Find Colleges by Name or Criteria"
+sidebarTitle: "search_schools"
+description: "Use search_schools to query U.S. colleges by name, state, ownership, locale, net price, and graduation rate from the College Scorecard dataset."
+---
+
+The `search_schools` tool is your primary entry point for discovering colleges in the College Scorecard dataset. It supports both free-text name search and structured filter criteria, letting you narrow results by state, institution type, locale, cost ceiling, and minimum graduation rate. You can combine a keyword query with filters in a single call, paginate through large result sets, and use the returned school IDs to drive follow-up calls to `get_school` or `compare_schools`.
+
+## Parameters
+
+<ParamField body="query" type="string">
+  A free-text search string matched against school names. For example, `"state university"` returns all schools whose name contains that phrase. Omit this field to search purely by filters.
+</ParamField>
+
+<ParamField body="filters" type="object">
+  An optional object of filter criteria. All specified filters are applied together (AND logic).
+
+  <Expandable title="filters properties">
+    <ParamField body="filters.state" type="string">
+      Two-letter U.S. state code to restrict results to a single state. For example, `"CA"` for California or `"TX"` for Texas.
+    </ParamField>
+
+    <ParamField body="filters.ownership" type="string">
+      Institution ownership type. Accepted values:
+      - `"public"` — publicly funded (ownership code 1)
+      - `"private_nonprofit"` — private, not-for-profit (ownership code 2)
+      - `"private_for_profit"` — private, for-profit (ownership code 3)
+    </ParamField>
+
+    <ParamField body="filters.locale" type="string">
+      Campus locale setting. Accepted values:
+      - `"city"` — locale codes 11–13
+      - `"suburb"` — locale codes 21–23
+      - `"town"` — locale codes 31–33
+      - `"rural"` — locale codes 41–43
+    </ParamField>
+
+    <ParamField body="filters.max_net_price" type="integer">
+      Maximum average net price in dollars per year (`latest.cost.avg_net_price.overall`). Results are limited to schools at or below this cost.
+    </ParamField>
+
+    <ParamField body="filters.min_graduation_rate" type="number">
+      Minimum 4-year graduation rate expressed as a decimal between `0.0` and `1.0` (`latest.completion.completion_rate_4yr_150nt`). For example, `0.6` requires at least a 60% graduation rate.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="page" type="integer" default="0">
+  Zero-indexed page number for paginating through result sets. Use alongside `per_page` to step through large result sets.
+</ParamField>
+
+<ParamField body="per_page" type="integer" default="10">
+  Number of results to return per page. Minimum is `1`; maximum is `100`.
+</ParamField>
+
+## Response
+
+<ResponseField name="schools" type="array">
+  An array of school objects matching your query and filters.
+
+  <Expandable title="school object fields">
+    <ResponseField name="id" type="integer">
+      The College Scorecard numeric school ID. Use this value in `get_school` or `compare_schools`.
+    </ResponseField>
+
+    <ResponseField name="name" type="string">
+      The institution's official name (`school.name`).
+    </ResponseField>
+
+    <ResponseField name="city" type="string">
+      The city where the main campus is located (`school.city`).
+    </ResponseField>
+
+    <ResponseField name="state" type="string">
+      Two-letter state code (`school.state`).
+    </ResponseField>
+
+    <ResponseField name="ownership" type="string">
+      Human-readable ownership label: `"Public"`, `"Private nonprofit"`, or `"Private for-profit"`.
+    </ResponseField>
+
+    <ResponseField name="student_size" type="integer">
+      Total undergraduate enrollment (`latest.student.size`).
+    </ResponseField>
+
+    <ResponseField name="admission_rate" type="number">
+      Overall admission rate as a decimal (`latest.admissions.admission_rate.overall`). `null` if not reported.
+    </ResponseField>
+
+    <ResponseField name="graduation_rate_4yr" type="number">
+      4-year graduation rate within 150% of normal time (`latest.completion.completion_rate_4yr_150nt`). `null` if not reported.
+    </ResponseField>
+
+    <ResponseField name="median_earnings_10yr" type="integer">
+      Median earnings 10 years after entry in dollars (`latest.earnings.10_yrs_after_entry.median`). `null` if not reported.
+    </ResponseField>
+
+    <ResponseField name="avg_net_price" type="integer">
+      Average net price for all students in dollars (`latest.cost.avg_net_price.overall`). `null` if not reported.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="total" type="integer">
+  Total number of schools matching your query across all pages.
+</ResponseField>
+
+<ResponseField name="page" type="integer">
+  The current page number (zero-indexed) returned in this response.
+</ResponseField>
+
+<ResponseField name="per_page" type="integer">
+  The number of results per page used for this response.
+</ResponseField>
+
+## Example
+
+The following request searches for public California state universities with at least a 60% graduation rate, returning the first five results.
+
+<CodeGroup>
+```json Request
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "search_schools",
+    "arguments": {
+      "query": "state university",
+      "filters": {
+        "state": "CA",
+        "ownership": "public",
+        "min_graduation_rate": 0.6
+      },
+      "page": 0,
+      "per_page": 5
+    }
+  },
+  "id": 1
+}
+```
+
+```json Response
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "schools": [
+      {
+        "id": 110617,
+        "name": "California State University-Los Angeles",
+        "city": "Los Angeles",
+        "state": "CA",
+        "ownership": "Public",
+        "student_size": 23943,
+        "admission_rate": 0.54,
+        "graduation_rate_4yr": 0.38,
+        "median_earnings_10yr": 46500,
+        "avg_net_price": 7800
+      }
+    ],
+    "total": 23,
+    "page": 0,
+    "per_page": 5
+  },
+  "id": 1
+}
+```
+</CodeGroup>
+
+<Tip>
+Combine `query` and `filters` together for the most precise results. For example, pairing `query: "polytechnic"` with `filters.state: "NY"` is far more targeted than using either alone. Once you have the school IDs you need, pass them directly to `get_school` for full profiles or `compare_schools` for a side-by-side view.
+</Tip>
+
+## Pagination
+
+When `total` exceeds `per_page`, increment the `page` parameter to fetch subsequent pages. For example, if `total` is `23` and `per_page` is `5`, pages `0` through `4` contain all results.
+
+<Note>
+Some Scorecard fields — such as `admission_rate` and `graduation_rate_4yr` — may be `null` for schools that do not report that data to the Department of Education. Filter results using `min_graduation_rate` only when your use case requires that data to be present.
+</Note>

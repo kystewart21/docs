@@ -1,0 +1,167 @@
+---
+title: "Error Codes and Troubleshooting the MCP API"
+sidebarTitle: "Error Codes"
+description: "Complete reference for JSON-RPC 2.0 error codes returned by the College Scorecard MCP server, with examples and retry guidance."
+---
+
+When a request to the College Scorecard MCP server fails, the server returns an HTTP `200` response whose body contains an `error` object instead of a `result` object — this is standard JSON-RPC 2.0 behavior. The `error` object always carries a numeric `code`, a human-readable `message`, and an optional `data` field with structured details that pinpoint exactly what went wrong. Understanding these codes helps you write resilient integrations and debug issues quickly.
+
+## Error Response Shape
+
+Every error response follows this structure:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "code": -32602,
+    "message": "Invalid params",
+    "data": {
+      "field": "id",
+      "issue": "required"
+    }
+  },
+  "id": 1
+}
+```
+
+The `id` field echoes the value you sent in the request, allowing you to correlate errors back to specific calls in concurrent workflows. If the request was so malformed that the server could not parse an `id`, the response `id` will be `null`.
+
+<Tip>
+  Always inspect the `data` field of the error object — it often contains
+  field-level validation details such as which parameter is missing, what value
+  was rejected, and what the valid options are. The `message` string is a
+  summary; `data` is where the actionable detail lives.
+</Tip>
+
+## Error Code Reference
+
+The table below covers every code the server can return, grouped into standard JSON-RPC codes and application-specific codes.
+
+| Code | Name | Meaning |
+|------|------|---------| 
+| `-32700` | Parse Error | The request body is not valid JSON and could not be parsed |
+| `-32600` | Invalid Request | The JSON was parsed but does not conform to JSON-RPC 2.0 structure |
+| `-32601` | Method Not Found | The `method` field names a method that does not exist on this server |
+| `-32602` | Invalid Params | A required parameter is missing, a value is the wrong type, or an enum value is unrecognized |
+| `-32603` | Internal Error | An unexpected server-side error occurred; not caused by the request |
+| `-32000` | School Not Found | No institution with the given numeric ID exists in the College Scorecard dataset |
+| `-32001` | Too Many IDs | `compare_schools` received more than 5 school IDs |
+| `-32002` | Upstream Error | The server encountered an error communicating with the College Scorecard API |
+| `-32003` | Rate Limit Exceeded | The server is receiving too many requests; slow down and retry |
+
+## Common Error Examples
+
+<Accordion title="-32602 Invalid Params">
+  Returned when a required parameter is absent or a value fails schema validation. The `data.field` property names the offending parameter.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "code": -32602,
+      "message": "Invalid params",
+      "data": {
+        "field": "id",
+        "issue": "required",
+        "hint": "Provide the numeric College Scorecard school ID."
+      }
+    },
+    "id": 3
+  }
+  ```
+
+  **How to fix:** Check that all parameters listed as `required` in the tool's `inputSchema` are present in your `arguments` object. Also verify that enum values (e.g., `ownership`, `locale`, `sort_by`) exactly match one of the allowed strings — they are case-sensitive.
+</Accordion>
+
+<Accordion title="-32000 School Not Found">
+  Returned by `get_school` and `compare_schools` when one or more of the supplied IDs do not match any institution in the College Scorecard dataset. The `data.ids` array lists whichever IDs could not be found.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "code": -32000,
+      "message": "School not found",
+      "data": {
+        "ids": [9999999],
+        "hint": "Use search_schools to look up valid school IDs."
+      }
+    },
+    "id": 7
+  }
+  ```
+
+  **How to fix:** Use `search_schools` with a name query to look up the correct numeric ID before calling `get_school` or `compare_schools`. IDs are stable across dataset releases but are institution-specific integers — do not guess or construct them manually.
+</Accordion>
+
+<Accordion title="-32002 Upstream Error">
+  Returned when the server successfully received your request but failed to retrieve data from the College Scorecard API. This is typically transient.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "code": -32002,
+      "message": "Upstream error",
+      "data": {
+        "upstream_status": 503,
+        "hint": "The College Scorecard API is temporarily unavailable. Retry after a short delay."
+      }
+    },
+    "id": 12
+  }
+  ```
+
+  **How to fix:** See the [retry guidance](#retrying-after-upstream-and-rate-limit-errors) section below.
+</Accordion>
+
+<Accordion title="-32003 Rate Limit Exceeded">
+  Returned when you are sending requests faster than the server allows. The `data.retry_after` field (when present) tells you how many seconds to wait before retrying.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "code": -32003,
+      "message": "Rate limit exceeded",
+      "data": {
+        "retry_after": 5,
+        "hint": "Wait the indicated number of seconds before sending another request."
+      }
+    },
+    "id": 15
+  }
+  ```
+
+  **How to fix:** See the [retry guidance](#retrying-after-upstream-and-rate-limit-errors) section below.
+</Accordion>
+
+## Retrying After Upstream and Rate Limit Errors
+
+Errors with code `-32002` (Upstream Error) and `-32003` (Rate Limit Exceeded) are transient by nature and safe to retry. Follow the guidance below to handle them gracefully.
+
+<Steps>
+  <Step title="Check data.retry_after">
+    When the error object includes a `data.retry_after` integer, wait at least that many seconds before sending the next request. This value is authoritative — do not retry sooner.
+  </Step>
+  <Step title="Apply exponential backoff">
+    If `retry_after` is absent, start with a 1-second delay and double it on each subsequent failure: 1 s → 2 s → 4 s → 8 s. Cap the maximum wait at 60 seconds.
+  </Step>
+  <Step title="Limit total retry attempts">
+    Retry at most 4–5 times for a single request. If the error persists beyond that, surface it to the user or log it for investigation rather than continuing to retry indefinitely.
+  </Step>
+  <Step title="Do not retry client errors">
+    Errors in the `-32600` to `-32602` range and `-32000` to `-32001` indicate a problem with the request itself, not a transient server condition. Retrying without modifying the request will not help — fix the parameters first.
+  </Step>
+</Steps>
+
+<Warning>
+  Aggressive retry loops without backoff can trigger additional rate limiting
+  and may result in your requests being blocked. Always respect the
+  `retry_after` value when it is present.
+</Warning>
+
+## Non-Error HTTP Status Codes
+
+The MCP server returns HTTP `200` for both successful results and JSON-RPC errors, following the JSON-RPC 2.0 specification. The only HTTP-level error you should expect is `400 Bad Request` if the request body is completely empty or the `Content-Type` header is missing. All other failure conditions are reported inside the JSON body.

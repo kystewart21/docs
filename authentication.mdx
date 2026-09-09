@@ -1,0 +1,105 @@
+---
+title: "How Authentication Works in College Scorecard MCP"
+sidebarTitle: "Authentication"
+description: "The College Scorecard MCP handles all API key management server-side — clients connect over HTTPS with no credentials required."
+---
+
+The College Scorecard MCP is designed so that you, as a client, never have to think about authentication. The MCP server holds a secure API key for the upstream College Scorecard API and injects it into every outbound request automatically. You connect to the MCP endpoint over standard HTTPS and start querying — no tokens, no headers, no key rotation.
+
+## How It Works
+
+The [U.S. Department of Education College Scorecard API](https://api.data.gov/ed/collegescorecard/v1/) requires an `api_key` query parameter on every request. Rather than exposing this requirement to clients, the College Scorecard MCP server manages the key entirely on the server side:
+
+1. **The API key is stored as a server-side environment secret** (`COLLEGE_SCORECARD_API_KEY`). It is never transmitted to clients, never logged in responses, and never included in any client-facing payload.
+2. **Every outbound request** from the MCP server to the College Scorecard API automatically includes the `api_key` parameter — appended server-side before the request leaves the network perimeter.
+3. **Your MCP client** communicates only with `https://your-service.example.com/mcp` using standard JSON-RPC over HTTPS. No authentication headers are required on your end.
+
+## What You Need (and Don't Need)
+
+| | Required? | Details |
+|---|---|---|
+| **MCP endpoint URL** | ✅ Yes | `https://your-service.example.com/mcp` |
+| **MCP-compatible client** | ✅ Yes | Claude Desktop, Cursor, or any MCP client |
+| **HTTPS** | ✅ Yes | All traffic to the endpoint is encrypted in transit |
+| **College Scorecard API key** | ❌ No | Managed server-side; not required by clients |
+| **Authorization headers** | ❌ No | The MCP endpoint is publicly accessible — no `Authorization` header needed |
+| **OAuth tokens or JWTs** | ❌ No | No token-based auth is required to call the MCP endpoint |
+| **Account or login** | ❌ No | No sign-up required to use the hosted MCP server |
+
+<Note>
+  The MCP endpoint at `https://your-service.example.com/mcp` is publicly accessible over HTTPS. All communication between your client and the MCP server is encrypted in transit via TLS.
+</Note>
+
+## From the Client's Perspective
+
+When your AI assistant calls a tool — for example, `search_schools` — here is what the request from your client looks like:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "search_schools",
+    "arguments": {
+      "query": "Stanford University",
+      "filters": { "state": "CA" }
+    }
+  },
+  "id": 1
+}
+```
+
+No API key. No authorization header. No credentials of any kind. The MCP server receives this request, enriches the corresponding College Scorecard API call with the secret key, and returns structured data to your client.
+
+## Self-Hosting the MCP Server
+
+If you are running your own instance of the College Scorecard MCP server rather than using the hosted endpoint, you will need to supply your own College Scorecard API key.
+
+<Steps>
+  <Step title="Obtain a College Scorecard API Key">
+    Register for a free API key at [https://api.data.gov/signup](https://api.data.gov/signup). The key is issued immediately after you confirm your email address.
+  </Step>
+  <Step title="Set the Environment Variable">
+    Export your key as the `COLLEGE_SCORECARD_API_KEY` environment variable before starting the MCP server:
+
+    ```bash
+    export COLLEGE_SCORECARD_API_KEY="your_api_key_here"
+    ```
+
+    Or add it to your deployment environment's secret store (e.g., a `.env` file, AWS Secrets Manager, Fly.io secrets, etc.):
+
+    ```bash .env
+    COLLEGE_SCORECARD_API_KEY=your_api_key_here
+    ```
+  </Step>
+  <Step title="Start the MCP Server">
+    The server reads `COLLEGE_SCORECARD_API_KEY` at startup and injects it into all requests to `https://api.data.gov/ed/collegescorecard/v1/`. No additional configuration is needed.
+  </Step>
+</Steps>
+
+<Warning>
+  Never commit your `COLLEGE_SCORECARD_API_KEY` to source control or expose it in client-side code. If your key is compromised, rotate it immediately at [https://api.data.gov](https://api.data.gov) and update the environment variable in your deployment.
+</Warning>
+
+## Security Model Summary
+
+<Accordion title="Why is there no client-side authentication?">
+  The hosted College Scorecard MCP server is designed as a public data utility — all the data it serves comes from a freely accessible U.S. government dataset. Because the underlying College Scorecard API data is public, there is no private user data to protect at the MCP layer, and requiring client credentials would add friction without a meaningful security benefit.
+
+  If you need to add access controls to your own deployment (for example, to restrict which users can call the MCP tools), you can place an authentication proxy (such as an API gateway or reverse proxy with bearer token enforcement) in front of the MCP endpoint.
+</Accordion>
+
+<Accordion title="How is the server-side API key protected?">
+  The `COLLEGE_SCORECARD_API_KEY` is stored as an encrypted environment secret in the server's deployment environment. It is:
+
+  - **Never returned** in any MCP tool response
+  - **Never logged** in application-level logs
+  - **Never transmitted** to MCP clients
+  - **Injected at request time** as a query parameter on outbound calls to `https://api.data.gov/ed/collegescorecard/v1/`
+
+  Only the MCP server process has access to the key at runtime.
+</Accordion>
+
+<Accordion title="Does the MCP endpoint support TLS/HTTPS only?">
+  Yes. The MCP endpoint at `https://your-service.example.com/mcp` enforces HTTPS. Plain HTTP connections are not accepted. All data exchanged between your client and the server is encrypted in transit using TLS 1.2 or higher.
+</Accordion>
