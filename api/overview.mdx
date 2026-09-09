@@ -11,7 +11,7 @@ The College Scorecard MCP server exposes a single HTTP endpoint that speaks the 
 All requests target the following base URL:
 
 ```text
-https://your-service.example.com/mcp
+https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp
 ```
 
 <Note>
@@ -99,12 +99,12 @@ To discover which tools are available and inspect their input schemas, send eith
 <Tabs>
   <Tab title="HTTP GET">
     ```bash
-    curl https://your-service.example.com/mcp
+    curl https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp
     ```
   </Tab>
   <Tab title="JSON-RPC">
     ```bash
-    curl -X POST https://your-service.example.com/mcp \
+    curl -X POST https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp \
       -H "Content-Type: application/json" \
       -d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}'
     ```
@@ -118,7 +118,7 @@ Both approaches return the same full tool manifest. See the [Tool List](/api/too
 The following example calls `search_schools` to find public universities in California.
 
 ```bash
-curl -X POST https://your-service.example.com/mcp \
+curl -X POST https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
