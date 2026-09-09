@@ -27,8 +27,8 @@ This guide walks you through connecting an MCP-compatible AI client to the Colle
   <Step title="Configure the MCP Endpoint">
     Point your MCP client at the College Scorecard MCP server endpoint:
 
-    ```
-    https://your-service.example.com/mcp
+    ```text
+    https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp
     ```
 
     The exact configuration format depends on your client.
@@ -46,7 +46,7 @@ This guide walks you through connecting an MCP-compatible AI client to the Colle
         {
           "mcpServers": {
             "college-scorecard": {
-              "url": "https://your-service.example.com/mcp",
+              "url": "https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp",
               "transport": "http"
             }
           }
@@ -65,7 +65,7 @@ This guide walks you through connecting an MCP-compatible AI client to the Colle
               "name": "college-scorecard",
               "transport": {
                 "type": "http",
-                "url": "https://your-service.example.com/mcp"
+                "url": "https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp"
               }
             }
           ]
@@ -80,7 +80,7 @@ This guide walks you through connecting an MCP-compatible AI client to the Colle
         ```json
         {
           "name": "college-scorecard",
-          "url": "https://your-service.example.com/mcp",
+          "url": "https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp",
           "transport": "http"
         }
         ```
@@ -99,7 +99,7 @@ This guide walks you through connecting an MCP-compatible AI client to the Colle
 
     A successful connection returns a list of all four College Scorecard MCP tools:
 
-    ```
+    ```text
     Available tools:
     - search_schools: Search for schools by name, location, and other criteria
     - get_school: Retrieve detailed data for a specific school by ID
@@ -108,7 +108,7 @@ This guide walks you through connecting an MCP-compatible AI client to the Colle
     ```
 
     <Tip>
-      If the tools don't appear, double-check that the `url` in your config exactly matches `https://your-service.example.com/mcp` and that your client was fully restarted after saving the config file.
+      If the tools don't appear, double-check that the `url` in your config exactly matches `https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp` and that your client was fully restarted after saving the config file.
     </Tip>
   </Step>
 
@@ -165,7 +165,7 @@ This guide walks you through connecting an MCP-compatible AI client to the Colle
 
     The assistant then interprets this response and replies in natural language — for example:
 
-    > *"Massachusetts Institute of Technology (MIT) is a private nonprofit university in Cambridge, MA. It has an acceptance rate of about 4%, an average net price of $21,917/year, and median earnings of $91,700 ten years after enrollment."*
+    > _"Massachusetts Institute of Technology (MIT) is a private nonprofit university in Cambridge, MA. It has an acceptance rate of about 4%, an average net price of_ $$21,917/year, and median earnings of $$_91,700 ten years after enrollment."_
 
     You're now fully connected and ready to explore College Scorecard data through your AI assistant.
   </Step>

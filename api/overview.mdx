@@ -25,8 +25,8 @@ The table below lists every HTTP route exposed by the MCP server.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `POST` | `/mcp` | Execute a tool call (JSON-RPC 2.0 `tools/call`) |
-| `GET`  | `/mcp` | Retrieve the tool manifest (`tools/list`) |
+| `POST` | `/api/mcp` | Execute a tool call (JSON-RPC 2.0 `tools/call`) |
+| `GET` | `/api/mcp` | Retrieve the tool manifest (`tools/list`) |
 
 Both routes consume and produce `application/json`. Always include the header `Content-Type: application/json` on POST requests.
 
@@ -94,7 +94,7 @@ See the [Error Codes](/api/error-codes) reference for the complete list of codes
 
 ## Retrieving the Tool Manifest
 
-To discover which tools are available and inspect their input schemas, send either a GET request to `/mcp` or a `tools/list` JSON-RPC call:
+To discover which tools are available and inspect their input schemas, send either a GET request to `/api/mcp` or a `tools/list` JSON-RPC call:
 
 <Tabs>
   <Tab title="HTTP GET">

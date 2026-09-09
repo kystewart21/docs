@@ -1,7 +1,7 @@
 ---
 title: "MCP Tool List: All Four Tools and Their Input Schemas"
 sidebarTitle: "Tool List"
-description: "Complete MCP tool manifest returned by GET /mcp or tools/list, including full JSON Schema definitions for all four College Scorecard tools."
+description: "Complete MCP tool manifest returned by GET /api/mcp or tools/list, including full JSON Schema definitions for all four College Scorecard tools."
 ---
 
 The College Scorecard MCP server publishes a machine-readable manifest that describes every tool it exposes — including each tool's name, description, and full JSON Schema for its input parameters. MCP-compatible clients fetch this manifest automatically during session initialization, so your AI assistant always has an up-to-date picture of what the server can do. You can also retrieve the manifest manually at any time for debugging or integration purposes.
@@ -13,14 +13,14 @@ The College Scorecard MCP server publishes a machine-readable manifest that desc
     Send a GET request to the MCP endpoint. This is the simplest way to inspect the manifest from a terminal or browser.
 
     ```bash
-    curl https://your-service.example.com/mcp
+    curl https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp
     ```
   </Tab>
   <Tab title="JSON-RPC tools/list">
     Send a `tools/list` JSON-RPC call via POST. Use this form when you need the manifest inside a programmatic workflow that already speaks JSON-RPC 2.0.
 
     ```bash
-    curl -X POST https://your-service.example.com/mcp \
+    curl -X POST https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp \
       -H "Content-Type: application/json" \
       -d '{
         "jsonrpc": "2.0",

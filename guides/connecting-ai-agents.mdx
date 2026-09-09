@@ -164,7 +164,7 @@ The College Scorecard MCP server exposes four tools — `search_schools`, `get_s
       </Step>
 
       <Step title="Run and verify">
-        Execute your script. You should see school names and their College Scorecard IDs printed to stdout. If you receive a connection error, confirm that your network allows outbound HTTPS to `your-service.example.com`.
+        Execute your script. You should see school names and their College Scorecard IDs printed to stdout. If you receive a connection error, confirm that your network allows outbound HTTPS to `box-college-scorecard-mcp.box-athletic-6399.chatgpt.site`.
       </Step>
     </Steps>
   </Tab>
@@ -200,7 +200,7 @@ Once connected, your AI client has access to all four tools exposed by the serve
 </Accordion>
 
 <Accordion title="The MCP SDK raises a connection timeout">
-  Ensure your environment has outbound access to port 443 on `your-service.example.com`. Firewalls, corporate proxies, and some cloud sandbox environments block outbound HTTPS to arbitrary hosts. Try a direct `curl` call from the same machine first to isolate the issue.
+  Ensure your environment has outbound access to port 443 on `box-college-scorecard-mcp.box-athletic-6399.chatgpt.site`. Firewalls, corporate proxies, and some cloud sandbox environments block outbound HTTPS to arbitrary hosts. Try a direct `curl` call from the same machine first to isolate the issue.
 </Accordion>
 
 <Accordion title="Cursor shows 'No tools available' after saving the server">
