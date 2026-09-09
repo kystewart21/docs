@@ -1,7 +1,7 @@
 ---
-title: "Error Codes and Troubleshooting the MCP API"
+title: "MCP API Error Codes: JSON-RPC Reference and Retry Guide"
 sidebarTitle: "Error Codes"
-description: "Complete reference for JSON-RPC 2.0 error codes returned by the College Scorecard MCP server, with examples and retry guidance."
+description: "All JSON-RPC 2.0 error codes (-32700 through -32003) returned by the College Scorecard MCP server, with example payloads and retry guidance."
 ---
 
 When a request to the College Scorecard MCP server fails, the server returns an HTTP `200` response whose body contains an `error` object instead of a `result` object — this is standard JSON-RPC 2.0 behavior. The `error` object always carries a numeric `code`, a human-readable `message`, and an optional `data` field with structured details that pinpoint exactly what went wrong. Understanding these codes helps you write resilient integrations and debug issues quickly.

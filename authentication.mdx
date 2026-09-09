@@ -1,7 +1,7 @@
 ---
-title: "How Authentication Works in College Scorecard MCP"
+title: "Authentication: How College Scorecard MCP Manages API Keys"
 sidebarTitle: "Authentication"
-description: "The College Scorecard MCP handles all API key management server-side — clients connect over HTTPS with no credentials required."
+description: "The College Scorecard MCP manages all API key authentication server-side — clients connect over HTTPS with no credentials or sign-up required."
 ---
 
 The College Scorecard MCP is designed so that you, as a client, never have to think about authentication. The MCP server holds a secure API key for the upstream College Scorecard API and injects it into every outbound request automatically. You connect to the MCP endpoint over standard HTTPS and start querying — no tokens, no headers, no key rotation.

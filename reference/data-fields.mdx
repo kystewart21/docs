@@ -1,5 +1,5 @@
 ---
-title: "College Scorecard Data Fields Reference"
+title: "College Scorecard MCP: Data Fields Reference Guide"
 sidebarTitle: "Data Fields"
 description: "Complete reference for all data fields returned by College Scorecard MCP tools, organized by category including identity, cost, admissions, and outcomes."
 ---
@@ -68,7 +68,7 @@ These fields describe the size and demographic composition of the student body.
 <ResponseField name="student_size" type="integer">
   The total number of undergraduate students enrolled at the institution. Maps to `latest.student.size`.
 
-  ```
+  ```text
   Example: 11520
   ```
 </ResponseField>
@@ -94,7 +94,7 @@ These fields describe the size and demographic composition of the student body.
 <ResponseField name="demographics.share_first_generation" type="number">
   The share of undergraduate students who are the first in their immediate family to attend college. Value is a decimal fraction between `0.0` and `1.0`. Maps to `latest.student.share_first_generation`.
 
-  ```
+  ```text
   Example: 0.34 → 34% first-generation students
   ```
 </ResponseField>
@@ -112,7 +112,7 @@ These fields reflect the selectivity and standardized test score profile of admi
 <ResponseField name="admission_rate" type="number">
   The overall share of applicants who received an offer of admission, expressed as a decimal between `0.0` and `1.0`. A lower value indicates higher selectivity. Maps to `latest.admissions.admission_rate.overall`.
 
-  ```
+  ```text
   Example: 0.04 → 4% of applicants admitted
   ```
 
@@ -146,7 +146,7 @@ These fields describe what students and families can expect to pay, including pu
 <ResponseField name="avg_net_price" type="integer">
   The average annual net price paid by all undergraduate students receiving Title IV federal financial aid, after grants and scholarships are applied. This is typically lower than published tuition. Maps to `latest.cost.avg_net_price.overall`.
 
-  ```
+  ```text
   Example: 18500 → $18,500 per year average net price
   ```
 </ResponseField>
@@ -186,7 +186,7 @@ These fields measure student success after enrollment — graduation, employment
 <ResponseField name="graduation_rate_4yr" type="number">
   The share of full-time, first-time students who completed their degree within 150% of the normal program time (6 years for a 4-year program). Expressed as a decimal between `0.0` and `1.0`. Maps to `latest.completion.completion_rate_4yr_150nt`.
 
-  ```
+  ```text
   Example: 0.87 → 87% graduation rate
   ```
 </ResponseField>
@@ -198,7 +198,7 @@ These fields measure student success after enrollment — graduation, employment
 <ResponseField name="median_earnings_10yr" type="integer">
   The median annual earnings of students who received federal financial aid, measured 10 years after their initial enrollment. Reported in U.S. dollars. Maps to `latest.earnings.10_yrs_after_entry.median`.
 
-  ```
+  ```text
   Example: 72000 → $72,000 median annual earnings
   ```
 </ResponseField>

@@ -1,5 +1,5 @@
 ---
-title: "Connect an AI Agent to College Scorecard MCP"
+title: "Connect AI Agents to the College Scorecard MCP Server"
 sidebarTitle: "AI Agent Setup"
 description: "Wire up Claude Desktop, Cursor, or any MCP SDK client to the College Scorecard MCP server in minutes — no API key required on your end."
 ---
@@ -26,7 +26,8 @@ The College Scorecard MCP server exposes four tools — `search_schools`, `get_s
       <Step title="Open the Claude Desktop config file">
         Locate the configuration file for your operating system:
 
-        - **macOS / Linux:** `~/.config/claude/claude_desktop_config.json`
+        - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+        - **Linux:** `~/.config/claude/claude_desktop_config.json`
         - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
         If the file does not exist yet, create it as an empty JSON object (`{}`).
@@ -191,7 +192,7 @@ Once connected, your AI client has access to all four tools exposed by the serve
 ## Troubleshooting
 
 <Accordion title="Claude does not show any MCP tools after restarting">
-  Confirm the config file path is correct for your OS. On macOS, note that `~/.config/claude/` is distinct from `~/Library/Application Support/Claude/` — use the path shown in the **Claude Desktop** tab above. Validate your JSON with a linter; a single syntax error causes the entire `mcpServers` block to be ignored silently.
+  Confirm the config file path is correct for your OS. On macOS the correct path is `~/Library/Application Support/Claude/claude_desktop_config.json`; on Linux it is `~/.config/claude/claude_desktop_config.json`. Use the exact paths shown in the **Claude Desktop** tab above. Validate your JSON with a linter — a single syntax error causes the entire `mcpServers` block to be ignored silently.
 </Accordion>
 
 <Accordion title="Tool calls return a 401 Unauthorized error">

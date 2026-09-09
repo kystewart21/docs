@@ -1,7 +1,7 @@
 ---
-title: "MCP Endpoint Overview and Protocol"
+title: "College Scorecard MCP: Endpoint and Protocol Reference"
 sidebarTitle: "Overview"
-description: "Base URL, HTTP methods, JSON-RPC 2.0 request/response shapes, and protocol basics for the College Scorecard MCP server."
+description: "Base URL, HTTP methods, JSON-RPC 2.0 request and response shapes, and authentication details for the College Scorecard MCP server."
 ---
 
 The College Scorecard MCP server exposes a single HTTP endpoint that speaks the Model Context Protocol over JSON-RPC 2.0. You send tool calls as POST requests and retrieve the tool manifest with a GET request — no authentication headers or client-side API keys are required. The server handles all College Scorecard API credentials internally, so your AI assistant can start querying institutional data immediately after pointing it at the endpoint.
@@ -10,7 +10,7 @@ The College Scorecard MCP server exposes a single HTTP endpoint that speaks the 
 
 All requests target the following base URL:
 
-```
+```text
 https://your-service.example.com/mcp
 ```
 

@@ -1,10 +1,10 @@
 ---
-title: "search_schools: Find Colleges by Name or Criteria"
+title: "search_schools: Find U.S. Colleges by Name or Criteria"
 sidebarTitle: "search_schools"
-description: "Use search_schools to query U.S. colleges by name, state, ownership, locale, net price, and graduation rate from the College Scorecard dataset."
+description: "Use search_schools to query U.S. colleges by name, location, ownership, cost, size, and selectivity filters from the College Scorecard dataset."
 ---
 
-The `search_schools` tool is your primary entry point for discovering colleges in the College Scorecard dataset. It supports both free-text name search and structured filter criteria, letting you narrow results by state, institution type, locale, cost ceiling, and minimum graduation rate. You can combine a keyword query with filters in a single call, paginate through large result sets, and use the returned school IDs to drive follow-up calls to `get_school` or `compare_schools`.
+The `search_schools` tool is your primary entry point for discovering colleges in the College Scorecard dataset. It supports both free-text name search and structured filter criteria, letting you narrow results by state, institution type, locale, cost ceiling, graduation rate, admission rate, and enrollment size. You can combine a keyword query with any number of filters in a single call, control sort order, paginate through large result sets, and use the returned school IDs to drive follow-up calls to `get_school` or `compare_schools`.
 
 ## Parameters
 
@@ -42,7 +42,27 @@ The `search_schools` tool is your primary entry point for discovering colleges i
     <ParamField body="filters.min_graduation_rate" type="number">
       Minimum 4-year graduation rate expressed as a decimal between `0.0` and `1.0` (`latest.completion.completion_rate_4yr_150nt`). For example, `0.6` requires at least a 60% graduation rate.
     </ParamField>
+
+    <ParamField body="filters.max_admission_rate" type="number">
+      Maximum overall admission rate expressed as a decimal between `0.0` and `1.0` (`latest.admissions.admission_rate.overall`). For example, `0.2` limits results to schools that admit 20% or fewer applicants.
+    </ParamField>
+
+    <ParamField body="filters.min_student_size" type="integer">
+      Minimum undergraduate enrollment (`latest.student.size`). Results are limited to schools with at least this many enrolled undergraduates.
+    </ParamField>
+
+    <ParamField body="filters.max_student_size" type="integer">
+      Maximum undergraduate enrollment (`latest.student.size`). Results are limited to schools with no more than this many enrolled undergraduates.
+    </ParamField>
   </Expandable>
+</ParamField>
+
+<ParamField body="sort_by" type="string" default="name">
+  The field to sort results by. Accepted values: `"name"`, `"admission_rate"`, `"graduation_rate_4yr"`, `"avg_net_price"`, `"median_earnings_10yr"`, `"student_size"`. Defaults to `"name"` when omitted.
+</ParamField>
+
+<ParamField body="sort_order" type="string" default="asc">
+  Sort direction. Accepted values: `"asc"` (ascending) or `"desc"` (descending). Defaults to `"asc"`. For metrics where a higher value is better (such as `graduation_rate_4yr` or `median_earnings_10yr`), use `"desc"` to surface the top performers first.
 </ParamField>
 
 <ParamField body="page" type="integer" default="0">
