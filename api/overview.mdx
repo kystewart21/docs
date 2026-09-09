@@ -11,7 +11,7 @@ The College Scorecard MCP server exposes a single HTTP endpoint that speaks the 
 All requests target the following base URL:
 
 ```text
-https://your-service.example.com/mcp
+https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp
 ```
 
 <Note>
@@ -25,8 +25,8 @@ The table below lists every HTTP route exposed by the MCP server.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `POST` | `/mcp` | Execute a tool call (JSON-RPC 2.0 `tools/call`) |
-| `GET`  | `/mcp` | Retrieve the tool manifest (`tools/list`) |
+| `POST` | `/api/mcp` | Execute a tool call (JSON-RPC 2.0 `tools/call`) |
+| `GET` | `/api/mcp` | Retrieve the tool manifest (`tools/list`) |
 
 Both routes consume and produce `application/json`. Always include the header `Content-Type: application/json` on POST requests.
 
@@ -94,17 +94,17 @@ See the [Error Codes](/api/error-codes) reference for the complete list of codes
 
 ## Retrieving the Tool Manifest
 
-To discover which tools are available and inspect their input schemas, send either a GET request to `/mcp` or a `tools/list` JSON-RPC call:
+To discover which tools are available and inspect their input schemas, send either a GET request to `/api/mcp` or a `tools/list` JSON-RPC call:
 
 <Tabs>
   <Tab title="HTTP GET">
     ```bash
-    curl https://your-service.example.com/mcp
+    curl https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp
     ```
   </Tab>
   <Tab title="JSON-RPC">
     ```bash
-    curl -X POST https://your-service.example.com/mcp \
+    curl -X POST https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp \
       -H "Content-Type: application/json" \
       -d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}'
     ```
@@ -118,7 +118,7 @@ Both approaches return the same full tool manifest. See the [Tool List](/api/too
 The following example calls `search_schools` to find public universities in California.
 
 ```bash
-curl -X POST https://your-service.example.com/mcp \
+curl -X POST https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",

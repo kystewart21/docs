@@ -12,13 +12,13 @@ The [U.S. Department of Education College Scorecard API](https://api.data.gov/ed
 
 1. **The API key is stored as a server-side environment secret** (`COLLEGE_SCORECARD_API_KEY`). It is never transmitted to clients, never logged in responses, and never included in any client-facing payload.
 2. **Every outbound request** from the MCP server to the College Scorecard API automatically includes the `api_key` parameter — appended server-side before the request leaves the network perimeter.
-3. **Your MCP client** communicates only with `https://your-service.example.com/mcp` using standard JSON-RPC over HTTPS. No authentication headers are required on your end.
+3. **Your MCP client** communicates only with `https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp` using standard JSON-RPC over HTTPS. No authentication headers are required on your end.
 
 ## What You Need (and Don't Need)
 
 | | Required? | Details |
 |---|---|---|
-| **MCP endpoint URL** | ✅ Yes | `https://your-service.example.com/mcp` |
+| **MCP endpoint URL** | ✅ Yes | `https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp` |
 | **MCP-compatible client** | ✅ Yes | Claude Desktop, Cursor, or any MCP client |
 | **HTTPS** | ✅ Yes | All traffic to the endpoint is encrypted in transit |
 | **College Scorecard API key** | ❌ No | Managed server-side; not required by clients |
@@ -27,7 +27,7 @@ The [U.S. Department of Education College Scorecard API](https://api.data.gov/ed
 | **Account or login** | ❌ No | No sign-up required to use the hosted MCP server |
 
 <Note>
-  The MCP endpoint at `https://your-service.example.com/mcp` is publicly accessible over HTTPS. All communication between your client and the MCP server is encrypted in transit via TLS.
+  The MCP endpoint at `https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp` is publicly accessible over HTTPS. All communication between your client and the MCP server is encrypted in transit via TLS.
 </Note>
 
 ## From the Client's Perspective
@@ -101,5 +101,5 @@ If you are running your own instance of the College Scorecard MCP server rather 
 </Accordion>
 
 <Accordion title="Does the MCP endpoint support TLS/HTTPS only?">
-  Yes. The MCP endpoint at `https://your-service.example.com/mcp` enforces HTTPS. Plain HTTP connections are not accepted. All data exchanged between your client and the server is encrypted in transit using TLS 1.2 or higher.
+  Yes. The MCP endpoint at `https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp` enforces HTTPS. Plain HTTP connections are not accepted. All data exchanged between your client and the server is encrypted in transit using TLS 1.2 or higher.
 </Accordion>

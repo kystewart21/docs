@@ -37,7 +37,7 @@ The College Scorecard MCP exposes four tools to AI assistants:
 
 The College Scorecard MCP sits between your AI client and the College Scorecard data source. Here's the flow at a high level:
 
-1. **Your AI client** (Claude Desktop, Cursor, or any MCP-compatible assistant) connects to the MCP endpoint at `https://your-service.example.com/mcp`.
+1. **Your AI client** (Claude Desktop, Cursor, or any MCP-compatible assistant) connects to the MCP endpoint at `https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp`.
 2. **The MCP server** receives tool calls from the AI, validates arguments, and forwards authenticated requests to the College Scorecard API.
 3. **College Scorecard data** is fetched, normalized, and returned to the AI client as structured JSON.
 4. **Your AI assistant** interprets the data and responds in natural language.
