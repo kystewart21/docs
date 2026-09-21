@@ -1,7 +1,7 @@
 ---
-title: 'OpenTweet API Rate Limits and Daily Post Limits'
+title: 'OpenTweet API Rate Limits: Request Caps and Post Quotas'
 sidebarTitle: 'Rate Limits'
-description: 'OpenTweet enforces per-minute request limits and daily post caps per plan. Rate limit headers are included in every 429 response so you can backoff correctly.'
+description: 'OpenTweet enforces per-minute request limits and daily post caps per plan. Rate limit headers on every 429 response let you back off and retry correctly.'
 ---
 
 OpenTweet enforces two independent types of limits: **API request rate limits**, which cap how many HTTP requests you can make per minute and per day, and **daily post limits**, which cap how many posts you can publish or schedule per calendar day. Both limits vary by plan.
@@ -89,8 +89,9 @@ def post_with_retry(text, max_retries=3):
             json={'text': text, 'publish_now': True}
         )
         if resp.status_code == 429:
-            retry_after = int(resp.headers.get('X-RateLimit-Reset', 60))
-            time.sleep(retry_after)
+            reset_at = int(resp.headers.get('X-RateLimit-Reset', time.time() + 60))
+            sleep_for = max(0, reset_at - time.time())
+            time.sleep(sleep_for)
             continue
         resp.raise_for_status()
         return resp.json()

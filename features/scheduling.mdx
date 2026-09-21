@@ -1,7 +1,7 @@
 ---
-title: 'Schedule Tweets on X with a Visual Calendar'
+title: "Schedule Tweets with OpenTweet's Visual Calendar Tool"
 sidebarTitle: 'Scheduling'
-description: "OpenTweet's visual calendar lets you schedule single tweets and threads, drag posts to new time slots, and use a best-time heatmap built from your own engagement data."
+description: "Schedule tweets and threads from a visual calendar, drag posts to new slots, and let the best-time heatmap pick the optimal publish time for you."
 ---
 
 OpenTweet gives you a single visual calendar where every post — whether you created it manually or an AI agent generated it — lives in one place. From that calendar you can schedule new posts, drag them to different time slots, and let OpenTweet's best-time heatmap suggest the moments your audience is most likely to engage.
@@ -74,7 +74,7 @@ curl -X POST https://opentweet.io/api/v1/posts \
 
 ### Reschedule an Existing Post
 
-Send a `PATCH` to the post's `/schedule` endpoint with the new date:
+Send a `POST` to the post's `/schedule` endpoint with the new date:
 
 ```bash
 curl -X POST https://opentweet.io/api/v1/posts/POST_ID/schedule \

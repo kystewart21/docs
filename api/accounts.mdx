@@ -48,7 +48,8 @@ curl -H 'Authorization: Bearer ot_your_key' \
       "is_primary": false,
       "nickname": "Brand",
       "x_subscription_type": "Pro",
-      "connected_at": "2026-02-20T14:00:00Z"
+      "connected_at": "2026-02-20T14:00:00Z",
+      "profile_image_url": "https://pbs.twimg.com/..."
     }
   ]
 }
@@ -81,7 +82,7 @@ curl -H 'Authorization: Bearer ot_your_key' \
 </ResponseField>
 
 <ResponseField name="profile_image_url" type="string">
-  URL of the account's current X profile picture. Only present on the primary account.
+  URL of the account's current X profile picture. May not be present on all accounts.
 </ResponseField>
 
 ## Posting to a specific account

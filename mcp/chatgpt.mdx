@@ -1,5 +1,5 @@
 ---
-title: "Connect OpenTweet MCP to ChatGPT"
+title: "Connect OpenTweet MCP to ChatGPT — Full Setup Guide"
 sidebarTitle: "ChatGPT"
 description: "Add the OpenTweet MCP server to ChatGPT so your agent can post, schedule threads, and read analytics on X without a developer account."
 ---
@@ -40,30 +40,59 @@ If your ChatGPT client accepts a JSON config block directly, paste the following
 
 Ask ChatGPT: *"List my OpenTweet posts."* It should call `opentweet_list_tweets` and return your post queue. If 43 tools appear in the tools panel, you're fully connected.
 
-## Step 4: Try Your First Action
+## Step 4: Target a Specific X Account
 
-Ask ChatGPT: *"Schedule a tweet saying [your text] for tomorrow at 9am."* ChatGPT will call `opentweet_schedule_tweet` and respond with the new post ID and confirmed schedule time.
+If your OpenTweet workspace has more than one X account connected — for example, a personal account alongside a brand account like `Tier_cal` — you need to tell ChatGPT which account to post from. Here's how:
+
+1. **Find your account ID.** Ask ChatGPT: *"Call opentweet_list_accounts and show me all connected accounts."* The response will include each account's handle and its unique `x_account_id`.
+
+2. **Identify the right account.** Look for the handle `Tier_cal` (or whichever account you want to target) in the list and note its `x_account_id` value.
+
+3. **Use the account ID in all posting calls.** When giving ChatGPT posting instructions, include the account ID explicitly:
+
+   > *"Post a tweet from account `x_account_id: acct_xxxxxxxx` saying: 'Excited to announce our new feature — try it today!'"*
+
+   ChatGPT will pass the `x_account_id` parameter to tools like `opentweet_create_tweet`, `opentweet_schedule_tweet`, and `opentweet_create_thread`, ensuring every action targets `Tier_cal` and not another connected account.
+
+<Tip>
+  You can also tell ChatGPT once at the start of your session: *"I'm working with the Tier_cal account. Its x_account_id is acct_xxxxxxxx. Use this for all posting calls."* ChatGPT will carry the ID through the rest of the conversation without you having to repeat it.
+</Tip>
+
+## Step 5: Try Your First Action
+
+Ask ChatGPT: *"Schedule a tweet from the Tier_cal account saying [your text] for tomorrow at 9am."* ChatGPT will call `opentweet_schedule_tweet` with the correct `x_account_id` and respond with the new post ID and confirmed schedule time.
 
 ## Example Prompts Your Agent Can Handle
 
 Once connected, ask your ChatGPT agent things like:
 
-- *"Post a tweet about [topic] right now."*
-- *"Schedule a thread about [topic] for Monday at 9am."*
-- *"Show me my top-performing posts from the last 30 days."*
-- *"Add my best tweet to the evergreen queue."*
-- *"Generate an image for my next post about [topic] and schedule it for Friday."*
-
-<Tip>
-  To target a specific X account, ask ChatGPT to call `opentweet_list_accounts` first to find your account ID, then reference that ID in subsequent posting calls. Alternatively, tell the agent which account handle to use and it will resolve the ID automatically.
-</Tip>
+- *"Call opentweet_list_accounts and tell me all the accounts in my workspace."*
+- *"Post a tweet from Tier_cal about our new product launch right now."*
+- *"Schedule a 5-tweet thread from Tier_cal about [topic] for Monday at 9am."*
+- *"Show me the top-performing posts from the Tier_cal account over the last 30 days."*
+- *"Add the best-performing Tier_cal tweet from last month to the evergreen queue."*
+- *"Generate an image for a post about [topic] and schedule it to go out from Tier_cal on Friday."*
+- *"What are the best times to post from the Tier_cal account based on recent engagement?"*
 
 ## Troubleshooting
 
-<Warning>
-  **Connection failed** — Double-check that the URL is exactly `https://mcp.opentweet.io/mcp`. The domain `api.opentweet.io` does not resolve and will cause a connection error.
-
-  **401 errors** — Verify that your key starts with `ot_` and is formatted as `Authorization: Bearer ot_...` in the header field. Keys without the `ot_` prefix will be rejected.
-
-  **403 on posting** — Your subscription may be inactive or on a free plan. Check your plan status at [opentweet.io/dashboard](https://opentweet.io/dashboard) and confirm that `subscription.has_access` is `true` in the `/me` API response.
-</Warning>
+<AccordionGroup>
+  <Accordion title="Connection failed or server not found">
+    Double-check that the URL is exactly `https://mcp.opentweet.io/mcp` — including the `/mcp` path at the end. Any variation will cause a connection error. Also confirm the transport type is set to `streamable-http`.
+  </Accordion>
+  <Accordion title="401 Unauthorized errors">
+    Verify that your key starts with `ot_` and is formatted as `Authorization: Bearer ot_...` in the header field. Keys without the `ot_` prefix will be rejected. Generate a new key from your [OpenTweet dashboard](https://opentweet.io/dashboard) if needed.
+  </Accordion>
+  <Accordion title="403 or no posting access">
+    Scheduling and publishing require an active OpenTweet subscription. Check your plan status on the [OpenTweet dashboard](https://opentweet.io/dashboard) and upgrade if you are on the free tier.
+  </Accordion>
+  <Accordion title="Tools don't appear in ChatGPT's tools panel">
+    ChatGPT may need a page refresh or full sign-out and sign-in after adding a new MCP server. If tools still don't appear, remove the server entry, save, then re-add it and refresh again.
+  </Accordion>
+  <Accordion title="Actions are going to the wrong X account">
+    If you have multiple X accounts connected and ChatGPT is posting to the wrong one, explicitly state the `x_account_id` in your prompt. Ask ChatGPT to call `opentweet_list_accounts` first to retrieve the correct ID for the account you want to target (e.g., `Tier_cal`), then reference that ID in your instruction.
+  </Accordion>
+  <Accordion title="DM campaign tools are missing">
+    The `dm_` tools only appear if your OpenTweet plan is **Advanced** or **Agency**. If you are on a lower tier, these tools will not be available. Upgrade your plan at [opentweet.io/dashboard](https://opentweet.io/dashboard) to unlock them.
+  </Accordion>
+</AccordionGroup>

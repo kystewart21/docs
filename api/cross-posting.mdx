@@ -33,6 +33,7 @@ curl -H 'Authorization: Bearer ot_your_key' \
       "connected": true,
       "usable": true,
       "needs_reconnect": false,
+      "accounts": [],
       "limits": {
         "max_text_length": 280,
         "text_unit": "weighted",
@@ -46,6 +47,7 @@ curl -H 'Authorization: Bearer ot_your_key' \
       "connected": true,
       "usable": true,
       "needs_reconnect": false,
+      "accounts": [],
       "limits": {
         "max_text_length": 300,
         "text_unit": "grapheme",
@@ -58,6 +60,7 @@ curl -H 'Authorization: Bearer ot_your_key' \
       "connected": true,
       "usable": true,
       "needs_reconnect": false,
+      "accounts": [],
       "limits": {
         "max_text_length": 3000,
         "text_unit": "codeunit",
@@ -72,13 +75,14 @@ curl -H 'Authorization: Bearer ot_your_key' \
 
 | Field | Meaning |
 |---|---|
-| `auto_cross_post` | When `true`, posts submitted without a `platforms` field go to every connected platform |
-| `default_targets` | Where a post with no `platforms` field actually goes right now |
-| `deliverable_targets` | Subset of `default_targets` with a working, authenticated connection |
-| `needs_reconnect` | `true` when a platform's token has expired and requires reauthorization |
+| `auto_cross_post` | Whether automatic cross-posting is enabled for this workspace |
+| `default_targets` | The platforms a post without a `platforms` field will be sent to — determined by your `auto_cross_post` setting and connected accounts |
+| `deliverable_targets` | Subset of `default_targets` whose connections are currently healthy and authenticated |
+| `needs_reconnect` | `true` when a platform's token has expired and requires reauthorization before it can receive posts |
+| `accounts` | Array of platform-specific account objects connected under this platform entry |
 
 <Warning>
-  Read `default_targets` rather than assuming — it is the live resolver output and changes whenever you connect, disconnect, or re-order platforms. A network that appears in `default_targets` but not in `deliverable_targets` has a broken connection and **will fail** until you reconnect it.
+  **Do not assume a post without a `platforms` field goes to X only.** It is routed according to `default_targets`, which reflects your current `auto_cross_post` setting and every platform you have connected. Always read `default_targets` to know the live routing before creating a post. A platform that appears in `default_targets` but not in `deliverable_targets` has a broken connection and **will fail** until you reconnect it.
 </Warning>
 
 ## Text unit differences

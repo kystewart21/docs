@@ -1,5 +1,5 @@
 ---
-title: 'Authenticate with the OpenTweet API'
+title: 'API Authentication and Key Management — OpenTweet API'
 sidebarTitle: 'Authentication'
 description: 'OpenTweet uses Bearer token authentication. Create an ot_ API key in the dashboard, send it in every request header, and rotate or revoke it anytime.'
 ---
@@ -90,7 +90,7 @@ For the hosted MCP server at `https://mcp.opentweet.io/mcp`, pass your key in th
 }
 ```
 
-If you're running the local npm MCP server instead, set the `OPENTWEET_API_KEY` environment variable and the server will pick it up automatically — no header config needed.
+If you're using the OpenTweet CLI (`@opentweet/cli`), run `opentweet auth` and paste your `ot_` key when prompted — the CLI stores it securely and uses it automatically for every subsequent command.
 
 ## Common Auth Errors
 

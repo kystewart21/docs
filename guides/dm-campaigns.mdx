@@ -1,7 +1,7 @@
 ---
-title: 'Run X DM Campaigns with Human Approval'
+title: 'Run Personalized X DM Campaigns with Human Approval'
 sidebarTitle: 'DM Campaigns'
-description: 'OpenTweet DM campaigns find leads from real X engagement, draft personalized messages, and send each one through the official API — but only after you approve it.'
+description: 'OpenTweet DM campaigns find leads from real X engagement, draft personalized messages, and send via the official API — only after you approve each one.'
 ---
 
 DM Campaigns let you reach people who have already engaged with your posts — replied, liked, or followed — with a personalized direct message. Unlike fully automated DM tools, OpenTweet requires your explicit approval before any message is sent. Every draft sits in a review queue until you approve or skip it, and every approved message goes out through the official X DM API — no browser automation, no scraping, no account risk. DM Campaigns are available on Advanced and Agency plans.
@@ -58,11 +58,15 @@ You have two ways to approve queued messages:
 
 ## View Campaign Results
 
-Track the full funnel for any campaign using two MCP tools or the dashboard's analytics tab:
+Track the full funnel for any campaign using MCP tools or the dashboard's analytics tab:
 
 | Tool | What it returns |
-|------|-----------------|
+|------|------------------|
+| `dm_campaign_create` | Creates a new DM campaign and returns its campaign ID |
+| `dm_campaign_list` | Lists all campaigns with status and summary metrics |
 | `dm_campaign_report` | Full funnel: found → qualified → approved → sent → replied |
+| `dm_leads_list` | Returns all leads for a campaign, including their draft messages |
+| `dm_lead_approve` | Approves a single lead’s draft message for delivery (human-in-the-loop step) |
 | `dm_inbox_list` | Reply conversations grouped by lead |
 
 A typical campaign funnel looks like this:

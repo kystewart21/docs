@@ -1,7 +1,7 @@
 ---
-title: 'Recycle Your Best Posts with the Evergreen Queue'
+title: 'Recycle Your Best Content with the Evergreen Queue'
 sidebarTitle: 'Evergreen Queue'
-description: 'The evergreen queue automatically re-posts your strongest content on a cooldown you set. Mark a tweet evergreen and OpenTweet recycles it after the cooldown expires.'
+description: 'Mark any post evergreen and OpenTweet recycles it after your cooldown expires. Keeps your best content reaching new followers automatically.'
 ---
 
 The evergreen queue lets your best content keep working for you long after its original publish date. Mark any post as evergreen, set a cooldown period, and OpenTweet automatically re-posts it once the cooldown expires — so new followers discover your top content without you rewriting a single word.
@@ -49,6 +49,7 @@ The agent calls `opentweet_add_to_evergreen` on your behalf. You can also use th
 | `opentweet_get_evergreen_settings` | Read your global evergreen configuration |
 | `opentweet_update_evergreen_settings` | Update posts-per-day, posting times, and default cooldown |
 | `opentweet_get_evergreen_history` | See which posts were recycled and when |
+| `opentweet_get_top_posts` | Retrieve your highest-engagement posts to identify evergreen candidates |
 
 Use `opentweet_update_evergreen_post` to pause a specific post without removing it from the pool — handy when you want a post to sit out a launch week but resume recycling afterward.
 
