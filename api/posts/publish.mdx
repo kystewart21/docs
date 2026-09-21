@@ -1,0 +1,55 @@
+---
+title: 'POST /api/v1/posts/:id/publish — Publish a Post Now'
+sidebarTitle: 'Publish'
+description: 'Publish a draft or scheduled post to X immediately. No request body needed. Returns the X post ID and URL on success. Requires an active subscription.'
+---
+
+Use this endpoint to bypass the schedule and publish an existing draft or scheduled post to X right now. No request body is required — just send the `POST` request with your API key and OpenTweet handles the rest. This action counts toward your plan's daily post limit.
+
+## Endpoint
+
+```
+POST https://opentweet.io/api/v1/posts/:id/publish
+```
+
+Replace `:id` with the ID of the post you want to publish.
+
+---
+
+## Example
+
+```bash
+curl -X POST https://opentweet.io/api/v1/posts/65f1a2b3.../publish \
+  -H 'Authorization: Bearer ot_your_key'
+```
+
+---
+
+## Response
+
+A successful publish returns `200 OK` with the X post ID and a direct URL to the live post.
+
+```json
+{
+  "success": true,
+  "id": "65f1a2b3...",
+  "text": "Just shipped a new feature!",
+  "x_post_id": "1234567890123456789",
+  "posted_date": "2026-07-10T09:00:00Z",
+  "message": "Post published successfully"
+}
+```
+
+---
+
+## Errors
+
+| Status | Cause |
+|--------|-------|
+| `400 Bad Request` | The post has already been published to X. |
+| `403 Forbidden` | Your workspace does not have an active OpenTweet subscription. |
+| `502 Bad Gateway` | X rejected the post. The post remains saved in OpenTweet — call this endpoint again to retry. |
+
+<Note>
+  On a `502` error, your post is **not** lost. OpenTweet saves the content, and you can call `POST /api/v1/posts/:id/publish` again once the X API issue is resolved.
+</Note>

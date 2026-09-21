@@ -1,73 +1,62 @@
 ---
-title: "College Scorecard MCP: U.S. College Data for AI Assistants"
-sidebarTitle: "Introduction"
-description: "Connect any MCP-compatible AI assistant to the U.S. Dept of Education's College Scorecard dataset — no API key required on your end."
+title: 'OpenTweet: The Posting Layer for X and AI Agents'
+sidebarTitle: 'Introduction'
+description: 'OpenTweet gives AI agents, developers, and creators a hosted MCP server, REST API, and CLI to post, schedule, and analyze on X — one key, no X developer account.'
 ---
 
-The College Scorecard MCP is a Model Context Protocol server that gives AI assistants direct, structured access to the U.S. Department of Education's official College Scorecard dataset. Whether you're building an AI-powered college search tool or simply asking an AI assistant to help you compare schools, the College Scorecard MCP bridges the gap between natural language and authoritative higher education data — covering costs, outcomes, admissions, programs, and more for thousands of institutions across the United States.
+OpenTweet is the posting layer for X (Twitter). Whether you're an AI agent that needs to publish content autonomously, a developer building a social automation tool, or a creator managing a content calendar, OpenTweet gives you a single API key and three flexible integration paths — no X developer account, no OAuth dance, no friction.
 
-## What Is the College Scorecard MCP?
+## Three Ways to Integrate
 
-The College Scorecard MCP wraps the [U.S. Department of Education College Scorecard API](https://collegescorecard.ed.gov/data/documentation/) and exposes it as a set of MCP tools that any compatible AI client can invoke. When you (or your users) ask an AI assistant a question like *"What are the most affordable engineering schools in Texas?"*, the assistant calls the appropriate MCP tool, retrieves live College Scorecard data, and synthesizes a response — all without you ever writing a line of data-fetching code or managing an API key.
+Connect to OpenTweet using whichever interface fits your workflow:
 
-<Note>
-  You do not need a College Scorecard API key to use this service. The MCP server handles all authentication with the upstream data source on your behalf. See [Authentication](/authentication) for details.
-</Note>
+- **Hosted MCP Server** — Point any MCP-compatible client (Claude Desktop, Cursor, Windsurf, ChatGPT) to `https://mcp.opentweet.io/mcp` and your AI agent instantly gains 43 tools for posting, scheduling, and analytics.
+- **REST API** — Send standard HTTP requests to `https://opentweet.io/api/v1` from any language or framework. Authenticate with a single Bearer token.
+- **CLI** — Install `@opentweet/cli` via npm and post or schedule tweets from your terminal or CI pipeline in seconds.
 
-## Available MCP Tools
+All three interfaces are included in every plan — pick one, or use all three.
 
-The College Scorecard MCP exposes four tools to AI assistants:
+## Key Features
 
 <CardGroup cols={2}>
-  <Card title="search_schools" icon="magnifying-glass">
-    Search for schools by name, location, size, acceptance rate, cost, or any combination of College Scorecard fields. Returns a paginated list of matching institutions.
+  <Card title="Visual Calendar" icon="calendar">
+    Drag-and-drop scheduling calendar so you can see, rearrange, and fill gaps in your content plan at a glance.
   </Card>
-  <Card title="get_school" icon="school">
-    Retrieve the full College Scorecard profile for a single institution by its ID, including admissions data, costs, outcomes, and programs offered.
+  <Card title="Cross-Posting" icon="share-nodes">
+    Publish the same content to X, Bluesky, and LinkedIn simultaneously from a single API call or dashboard action.
   </Card>
-  <Card title="compare_schools" icon="code-compare">
-    Accept a list of school IDs and return a side-by-side comparison across key metrics: tuition, graduation rates, median earnings, and more.
+  <Card title="AI Studio" icon="wand-magic-sparkles">
+    Generate, rewrite, and optimize post copy with built-in AI — directly in the dashboard or via the API.
   </Card>
-  <Card title="find_programs" icon="book-open">
-    Search for schools that offer specific academic programs using standard CIP (Classification of Instructional Programs) codes, such as Computer Science (11.0701) or Business Administration (52.0201).
+  <Card title="Connectors" icon="plug">
+    Automatically turn RSS feeds, GitHub releases, and Stripe events into scheduled posts without writing glue code.
+  </Card>
+  <Card title="Evergreen Queue" icon="rotate">
+    Recycle your best-performing posts on a rolling schedule so your top content keeps driving engagement.
+  </Card>
+  <Card title="X Articles" icon="newspaper">
+    Draft and publish long-form X Articles through the same API and dashboard you already use for tweets.
+  </Card>
+  <Card title="DM Campaigns" icon="envelope">
+    Send personalized direct-message sequences to your audience at scale, with rate limiting handled for you.
+  </Card>
+  <Card title="Analytics" icon="chart-line">
+    Track impressions, engagement rate, follower growth, and post-level metrics from a unified analytics dashboard.
   </Card>
 </CardGroup>
 
-## How It Works
+## Plans
 
-The College Scorecard MCP sits between your AI client and the College Scorecard data source. Here's the flow at a high level:
+Every plan includes the REST API, CLI, and hosted MCP server, and starts with a **7-day free trial** — no credit card required.
 
-1. **Your AI client** (Claude Desktop, Cursor, or any MCP-compatible assistant) connects to the MCP endpoint at `https://your-service.example.com/mcp`.
-2. **The MCP server** receives tool calls from the AI, validates arguments, and forwards authenticated requests to the College Scorecard API.
-3. **College Scorecard data** is fetched, normalized, and returned to the AI client as structured JSON.
-4. **Your AI assistant** interprets the data and responds in natural language.
+| Plan | Price | X Accounts | Posts / Day | API Keys |
+|------|-------|-----------|-------------|----------|
+| **Pro** | $11.99 / mo | 1 | 20 | 3 |
+| **Advanced** | $29 / mo | 3 | 100 | 10 |
+| **Agency** | $49 / mo | 10 | 300 | 25 |
 
-No credentials flow through the client. No API keys to rotate. No rate-limit tokens to manage on your end.
+Choose the plan that matches your volume, then upgrade at any time as your needs grow.
 
-## Who Is This For?
+## No X Developer Account Needed
 
-<CardGroup cols={2}>
-  <Card title="Developers" icon="code">
-    Build AI-powered college search features, recommendation engines, or research tools by connecting any MCP-compatible AI framework to authoritative education data in minutes.
-  </Card>
-  <Card title="Students & Researchers" icon="graduation-cap">
-    Use your favorite AI assistant to explore, compare, and analyze colleges using real Department of Education data — all through natural conversation.
-  </Card>
-</CardGroup>
-
-## Explore the Documentation
-
-<CardGroup cols={2}>
-  <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Connect your AI client and make your first College Scorecard tool call in under five minutes.
-  </Card>
-  <Card title="Tools Overview" icon="wrench" href="/tools">
-    Deep-dive into each MCP tool: parameters, filters, response shapes, and example calls.
-  </Card>
-  <Card title="API Reference" icon="file-code" href="/api/overview">
-    Full parameter and response-field reference for all four tools, including supported College Scorecard data fields.
-  </Card>
-  <Card title="Guides" icon="map" href="/guides">
-    Practical recipes for common use cases: building a school recommender, comparing program costs, and more.
-  </Card>
-</CardGroup>
+OpenTweet handles the X API credentials on your behalf. To connect your X account, just click **Connect X Account** in the dashboard and authorize OpenTweet — the whole process takes under two minutes. You never need to apply for X developer access, create an X app, or manage OAuth tokens yourself.

@@ -1,146 +1,121 @@
 ---
-title: "College Scorecard MCP: Endpoint and Protocol Reference"
-sidebarTitle: "Overview"
-description: "Base URL, HTTP methods, JSON-RPC 2.0 request and response shapes, and authentication details for the College Scorecard MCP server."
+title: 'OpenTweet REST API Reference'
+sidebarTitle: 'Overview'
+description: 'Full reference for the OpenTweet REST API. Base URL, authentication, rate limits, and a list of all available endpoints for posting, analytics, and account management.'
 ---
 
-The College Scorecard MCP server exposes a single HTTP endpoint that speaks the Model Context Protocol over JSON-RPC 2.0. You send tool calls as POST requests and retrieve the tool manifest with a GET request — no authentication headers or client-side API keys are required. The server handles all College Scorecard API credentials internally, so your AI assistant can start querying institutional data immediately after pointing it at the endpoint.
+The OpenTweet REST API gives you programmatic control over every feature in the platform — post creation, scheduling, media uploads, analytics, and account management. Every paid plan (Pro, Advanced, and Agency) includes full API access with no add-on required.
 
 ## Base URL
 
-All requests target the following base URL:
+All API requests go to:
 
-```text
-https://your-service.example.com/mcp
+```
+https://opentweet.io
 ```
 
-<Note>
-  HTTPS is required for all requests. The server does not accept plain HTTP
-  connections. Requests made over `http://` will be rejected or redirected.
-</Note>
+Every endpoint returns JSON. Send `Content-Type: application/json` on all `POST` and `PUT` requests.
 
-## Available Endpoints
+## Authentication
 
-The table below lists every HTTP route exposed by the MCP server.
-
-| Method | Path | Purpose |
-|--------|------|---------|
-| `POST` | `/mcp` | Execute a tool call (JSON-RPC 2.0 `tools/call`) |
-| `GET`  | `/mcp` | Retrieve the tool manifest (`tools/list`) |
-
-Both routes consume and produce `application/json`. Always include the header `Content-Type: application/json` on POST requests.
-
-## Protocol Basics
-
-The server implements the [Model Context Protocol](https://modelcontextprotocol.io) transport layer over standard HTTP. Every POST body must be a well-formed JSON-RPC 2.0 object. MCP-compatible clients (Claude Desktop, Cursor, Windsurf, and others) handle this framing automatically; the details below are relevant if you are integrating directly or debugging raw traffic.
-
-### Request Format
-
-Every tool-call request follows this JSON-RPC 2.0 envelope. Set `method` to `tools/call`, supply the tool name and its arguments inside `params`, and include an `id` you can use to correlate the response.
-
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "<tool_name>",
-    "arguments": {}
-  },
-  "id": 1
-}
-```
-
-<Accordion title="Field descriptions">
-  | Field | Type | Required | Description |
-  |-------|------|----------|-------------|
-  | `jsonrpc` | string | ✅ | Must be the literal string `"2.0"` |
-  | `method` | string | ✅ | Use `"tools/call"` to invoke a tool, or `"tools/list"` to retrieve the manifest |
-  | `params.name` | string | ✅ | The MCP tool name (e.g., `"search_schools"`) |
-  | `params.arguments` | object | ✅ | Tool-specific parameters; see each tool's reference page |
-  | `id` | integer \| string | ✅ | Client-chosen correlation ID; echoed back in the response |
-</Accordion>
-
-### Success Response Format
-
-When a tool call succeeds the server returns HTTP `200` with the following body. The `result` object contains the tool's output payload.
-
-```json
-{
-  "jsonrpc": "2.0",
-  "result": {},
-  "id": 1
-}
-```
-
-The shape of `result` depends on the tool invoked. See the [Schools reference](/api/schools) and [Programs reference](/api/programs) pages for full response field documentation.
-
-### Error Response Format
-
-When a request fails the server returns HTTP `200` (per JSON-RPC 2.0 convention) with an `error` object instead of `result`. The `code` field identifies the failure category, `message` provides a human-readable summary, and the optional `data` field carries field-level detail.
-
-```json
-{
-  "jsonrpc": "2.0",
-  "error": {
-    "code": -32602,
-    "message": "Invalid params",
-    "data": { "field": "id", "issue": "required" }
-  },
-  "id": 1
-}
-```
-
-See the [Error Codes](/api/error-codes) reference for the complete list of codes and remediation guidance.
-
-## Retrieving the Tool Manifest
-
-To discover which tools are available and inspect their input schemas, send either a GET request to `/mcp` or a `tools/list` JSON-RPC call:
-
-<Tabs>
-  <Tab title="HTTP GET">
-    ```bash
-    curl https://your-service.example.com/mcp
-    ```
-  </Tab>
-  <Tab title="JSON-RPC">
-    ```bash
-    curl -X POST https://your-service.example.com/mcp \
-      -H "Content-Type: application/json" \
-      -d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}'
-    ```
-  </Tab>
-</Tabs>
-
-Both approaches return the same full tool manifest. See the [Tool List](/api/tool-list) page for the complete response.
-
-## Quick Example: Calling a Tool
-
-The following example calls `search_schools` to find public universities in California.
+Authenticate every request by passing your `ot_` API key in one of two headers:
 
 ```bash
-curl -X POST https://your-service.example.com/mcp \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "search_schools",
-      "arguments": {
-        "filters": {
-          "state": "CA",
-          "ownership": "public"
-        },
-        "sort_by": "graduation_rate_4yr",
-        "sort_order": "desc",
-        "per_page": 5
-      }
-    },
-    "id": 1
-  }'
+# Option 1 — Authorization header (preferred)
+Authorization: Bearer ot_your_key
+
+# Option 2 — X-API-Key header
+X-API-Key: ot_your_key
 ```
 
-<Tip>
-  When using an MCP-compatible AI client you never write these requests
-  manually. The client negotiates the protocol and calls tools on your behalf
-  based on natural-language instructions.
-</Tip>
+See the [Authentication guide](/api/authentication) for full details on creating, rotating, and revoking keys.
+
+## Quick Start
+
+```bash
+# Verify your key
+curl -H 'Authorization: Bearer ot_your_key' https://opentweet.io/api/v1/me
+
+# Post immediately
+curl -X POST https://opentweet.io/api/v1/posts \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "Hello from the API!", "publish_now": true}'
+```
+
+Ready to dive in? Follow the [Quickstart guide](/quickstart) for a step-by-step walkthrough, or explore the full endpoint reference below.
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Account &amp; Auth" icon="user">
+    Verify your key, inspect subscription status, and list connected X accounts.
+  </Card>
+  <Card title="Posts" icon="pen-to-square">
+    Create, schedule, publish, update, and delete posts and threads.
+  </Card>
+  <Card title="Articles" icon="newspaper">
+    Create and publish long-form X Articles directly from the API.
+  </Card>
+  <Card title="Analytics" icon="chart-line">
+    Retrieve account-level stats, tweet engagement, and best posting times.
+  </Card>
+</CardGroup>
+
+### Account
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/me` | Verify key, check subscription and limits |
+| `GET` | `/api/v1/accounts` | List connected X accounts |
+| `GET` | `/api/v1/cross-posting` | Cross-posting targets and per-network limits |
+
+### Posts
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/posts` | List posts with pagination and status filter |
+| `POST` | `/api/v1/posts` | Create, schedule, or bulk-create posts |
+| `GET` | `/api/v1/posts/:id` | Get a single post |
+| `PUT` | `/api/v1/posts/:id` | Update a draft or scheduled post |
+| `DELETE` | `/api/v1/posts/:id` | Delete a post |
+| `POST` | `/api/v1/posts/:id/schedule` | Schedule a post |
+| `POST` | `/api/v1/posts/:id/publish` | Publish a post immediately |
+| `POST` | `/api/v1/posts/batch-schedule` | Schedule up to 50 posts at once |
+
+### Articles
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/articles` | List articles |
+| `POST` | `/api/v1/articles` | Create an article |
+| `PUT` | `/api/v1/articles/:id` | Update an article |
+| `POST` | `/api/v1/articles/:id/publish` | Publish an article immediately |
+
+### Media
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/v1/upload` | Upload media (image or video) |
+
+### Analytics
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/analytics/overview` | Account-level analytics |
+| `GET` | `/api/v1/analytics/tweets` | Tweet engagement metrics (Advanced+) |
+| `GET` | `/api/v1/analytics/best-times` | Best posting times |
+
+<Note>
+  Tweet engagement analytics (`/api/v1/analytics/tweets`) require an **Advanced** plan or higher. Calling this endpoint on a Pro plan returns a `403` response.
+</Note>
+
+## Plan Access
+
+The API is available on every paid OpenTweet plan. Rate limits and daily post caps vary by plan — see the [Rate Limits reference](/api/rate-limits) for the full breakdown.
+
+| Plan | API Access | Requests/min | Posts/day |
+|------|------------|--------------|-----------|
+| Pro | ✓ | 60 | 20 |
+| Advanced | ✓ | 300 | 100 |
+| Agency | ✓ | 300 | 300 |

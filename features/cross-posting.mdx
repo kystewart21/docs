@@ -1,0 +1,109 @@
+---
+title: 'Cross-Post to X, Bluesky, and LinkedIn'
+sidebarTitle: 'Cross-Posting'
+description: 'Write one post or thread and publish it natively to X, Bluesky, and LinkedIn at the same time. Each network gets a real native post, not a link back to your tweet.'
+---
+
+OpenTweet lets you write a single post and publish it as a native post on X, Bluesky, and LinkedIn simultaneously. Each network receives its own real post through that platform's API — your LinkedIn audience never sees "see my tweet" and your Bluesky followers get a proper AT Protocol post, not an embed.
+
+## Supported Networks
+
+- **X (Twitter)** — connected via the X developer API using OAuth 2.0
+- **Bluesky** — connected via atproto OAuth; no developer account or app password required
+- **LinkedIn** — connected with your personal LinkedIn sign-in; posts go to your personal profile
+
+## Network Limits at a Glance
+
+| Network | Max text | Images | Threads |
+|---------|----------|--------|---------|
+| X | 280 chars (25,000 on Premium) | 4 | Real reply chain |
+| Bluesky | 300 chars | 4 (2 MB each) | Real reply chain |
+| LinkedIn | 3,000 chars | Up to 20 | Combined as one post |
+
+Posts that exceed a network's character limit are **skipped** for that network — not silently truncated. The API response tells you exactly why a network was skipped, and the post still goes out on every platform where it fits.
+
+## Connecting Your Accounts
+
+### X (Twitter)
+
+Go to **Dashboard → Settings → Connected Accounts** and click **Connect X**. Authorize in one click — no developer account setup required on your side.
+
+### Bluesky
+
+Go to **Dashboard → Settings → Connected Accounts → Connect Bluesky**. OpenTweet uses atproto OAuth, so no app password is needed. Self-hosted Bluesky PDS servers are supported — enter your custom handle during setup.
+
+### LinkedIn
+
+Go to **Dashboard → Settings → Connected Accounts → Connect LinkedIn**. Sign in with your personal LinkedIn account. Your LinkedIn access token lasts 60 days; when it expires, OpenTweet alerts you and you can reconnect in one click from the same settings page.
+
+<Note>
+  LinkedIn cross-posting publishes to your **personal profile**. LinkedIn Company Pages are not currently supported.
+</Note>
+
+## Post to Multiple Platforms via the API
+
+Pass a `platforms` array to specify exactly which networks should receive the post:
+
+```bash
+# Post to X, Bluesky, and LinkedIn
+curl -X POST https://opentweet.io/api/v1/posts \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "text": "Shipped cross-posting today.",
+    "platforms": ["x", "bluesky", "linkedin"],
+    "publish_now": true
+  }'
+
+# Post to X only (overrides the account's auto cross-post setting)
+curl -X POST https://opentweet.io/api/v1/posts \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "text": "X only post.",
+    "platforms": ["x"],
+    "publish_now": true
+  }'
+```
+
+<Warning>
+  Omitting `platforms` is **not** the same as posting to X only. A request without a `platforms` field inherits the account's auto cross-post setting — if auto cross-post is enabled, the post goes to every connected platform. Always pass `"platforms": ["x"]` when you intend to post to X exclusively.
+</Warning>
+
+## Understanding the Response
+
+The API returns a `results` array with a status entry for each platform you targeted. Skipped platforms include a `skip_reason` that explains exactly why:
+
+```json
+{
+  "results": [
+    {
+      "platform": "x",
+      "status": "published",
+      "post_id": "183400000000001",
+      "url": "https://x.com/you/status/183400000000001"
+    },
+    {
+      "platform": "bluesky",
+      "status": "skipped",
+      "skip_reason": "This post is 412 characters, over the 300 Bluesky allows."
+    },
+    {
+      "platform": "linkedin",
+      "status": "published"
+    }
+  ]
+}
+```
+
+Use the `skip_reason` field to handle over-length posts in your integration — for example, by trimming the text and retrying just the skipped platform.
+
+## Plan Limits for Connected Accounts
+
+| Plan | LinkedIn & Bluesky accounts |
+|------|-----------------------------|
+| Pro | 1 each |
+| Advanced | 3 each |
+| Agency | 10 each |
+
+You can connect multiple accounts of the same type on Advanced and Agency plans, useful for managing clients or separate brands from a single OpenTweet workspace.

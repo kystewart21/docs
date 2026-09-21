@@ -1,0 +1,101 @@
+---
+title: 'Bulk Schedule a Week of Content on X'
+sidebarTitle: 'Bulk Scheduling'
+description: 'Schedule up to 50 posts at once with the OpenTweet batch API or JSON import. Plan a full week of content in minutes with one REST call or the visual calendar.'
+---
+
+Bulk scheduling lets you queue an entire week of posts in a single API call or through the visual dashboard calendar — no more opening the composer post by post. You can send up to 50 posts per batch via the API, or schedule an unlimited number of drafts by dragging them onto the calendar in the dashboard.
+
+## Method 1: Bulk Create with the REST API
+
+Pass an array of post objects to `POST /api/v1/posts`. Each object needs a `text` field and a `scheduled_date` in ISO 8601 format (UTC).
+
+```bash
+curl -X POST https://opentweet.io/api/v1/posts \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "posts": [
+      {"text": "Monday motivation", "scheduled_date": "2026-07-07T09:00:00Z"},
+      {"text": "Tuesday tip", "scheduled_date": "2026-07-08T14:00:00Z"},
+      {"text": "Wednesday wins", "scheduled_date": "2026-07-09T11:00:00Z"},
+      {"text": "Thursday thoughts", "scheduled_date": "2026-07-10T16:00:00Z"},
+      {"text": "Friday feels", "scheduled_date": "2026-07-11T10:00:00Z"}
+    ]
+  }'
+```
+
+---
+
+## Method 2: Batch Schedule Existing Drafts
+
+If you have already created posts as drafts (by omitting `scheduled_date`), schedule them all at once with `POST /api/v1/posts/batch-schedule`. Pass each draft's ID alongside its target time.
+
+```bash
+curl -X POST https://opentweet.io/api/v1/posts/batch-schedule \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "schedules": [
+      {"post_id": "POST_ID_1", "scheduled_date": "2026-07-07T09:00:00Z"},
+      {"post_id": "POST_ID_2", "scheduled_date": "2026-07-08T14:00:00Z"}
+    ]
+  }'
+```
+
+---
+
+## Method 3: MCP Agent Bulk Scheduling
+
+If your agent is connected via the OpenTweet MCP server, you can bulk-schedule entirely through natural language. Provide the content and the time slots in your prompt:
+
+> "Schedule these 5 posts for Monday through Friday at 9am this week."
+
+The agent calls `opentweet_batch_schedule` automatically and returns the scheduled post IDs. No extra code or configuration needed beyond the standard MCP setup.
+
+---
+
+## Method 4: Dashboard Calendar
+
+The visual calendar is the fastest option when you want human control over timing without writing any code.
+
+<Steps>
+  <Step title="Write or generate your drafts">
+    Open the composer and write your posts, or use the built-in AI generator to produce a week of content from a brief.
+  </Step>
+  <Step title="Open the calendar view">
+    Navigate to **Calendar** in the left sidebar. Drafted posts appear in the unscheduled queue on the right.
+  </Step>
+  <Step title="Drag drafts to calendar slots">
+    Drag each draft to the day and time slot you want. The slot turns green when a post lands on it.
+  </Step>
+  <Step title="Use the best-time heatmap">
+    Toggle the heatmap overlay to see when your audience is most active. Pick the brightest slots for your highest-priority posts.
+  </Step>
+</Steps>
+
+---
+
+## Batch API Response
+
+A successful batch request returns a `scheduled` array containing every post that was queued. The `errors` array is only present when one or more posts in the batch fail — if all posts succeed, the key is omitted entirely.
+
+```json
+{
+  "success": true,
+  "message": "5 post(s) scheduled",
+  "scheduled": [
+    { "id": "...", "text": "Monday motivation", "scheduled_date": "2026-07-07T09:00:00Z" }
+  ]
+}
+```
+
+---
+
+<Note>
+  **Batch limits and daily caps**
+
+  - Maximum **50 posts per batch** API call.
+  - Scheduled posts count toward your plan's daily limit: **Pro** 20/day · **Advanced** 100/day · **Agency** 300/day.
+  - Use the best-time analytics heatmap to spread posts across peak engagement windows rather than clustering them at the same hour.
+</Note>

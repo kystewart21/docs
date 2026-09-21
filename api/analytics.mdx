@@ -1,0 +1,199 @@
+---
+title: 'Analytics API — Overview, Engagement, and Best Times'
+sidebarTitle: 'Analytics'
+description: 'Three analytics endpoints: account-level posting stats, tweet engagement metrics (Advanced+), and best-time recommendations based on your own publishing history.'
+---
+
+The Analytics API gives you programmatic access to three distinct data sets: your overall posting activity, per-tweet engagement numbers, and the hours and days when you actually publish most. Use these endpoints to build dashboards, automate reporting, or feed scheduling logic with data drawn directly from your account — not from generic industry benchmarks.
+
+## Endpoints at a glance
+
+| Endpoint | What it returns | Plans |
+|---|---|---|
+| `GET /api/v1/analytics/overview` | Posting stats, streaks, trends, categories | All |
+| `GET /api/v1/analytics/tweets` | Tweet engagement: likes, retweets, impressions | Advanced, Agency |
+| `GET /api/v1/analytics/best-times` | Optimal posting windows from your history | All |
+
+---
+
+## GET /api/v1/analytics/overview
+
+Returns a full picture of your posting activity: lifetime counts, current and longest streaks, weekly and monthly trends, and a breakdown of content categories.
+
+```bash
+curl -H 'Authorization: Bearer ot_your_key' \
+  https://opentweet.io/api/v1/analytics/overview
+```
+
+### Response
+
+```json
+{
+  "stats": {
+    "total_posts_created": 142,
+    "total_posts_published": 120,
+    "publishing_rate": 85,
+    "avg_posts_per_week": 7.2,
+    "most_active_day": "monday",
+    "most_active_hour": 9,
+    "total_threads_created": 12
+  },
+  "streaks": {
+    "current": 5,
+    "longest": 14,
+    "last_posted_date": "2026-07-01T10:00:00Z"
+  },
+  "trends": {
+    "this_week": 7,
+    "last_week": 5,
+    "this_month": 24,
+    "best_month": { "month": "2026-01", "count": 32 }
+  },
+  "categories": [
+    { "name": "Product", "count": 45, "percentage": 32 }
+  ]
+}
+```
+
+### Response fields
+
+<ResponseField name="stats.publishing_rate" type="number">
+  Percentage of created posts that were actually published (0–100).
+</ResponseField>
+
+<ResponseField name="stats.most_active_hour" type="number">
+  Hour of day (0–23, UTC) at which you publish most frequently.
+</ResponseField>
+
+<ResponseField name="streaks.current" type="number">
+  Consecutive days on which you published at least one post, ending today.
+</ResponseField>
+
+<ResponseField name="trends.best_month" type="object">
+  The calendar month in which you published the most posts, with the count.
+</ResponseField>
+
+<ResponseField name="categories" type="array">
+  Content category breakdown. Each item includes `name`, `count`, and `percentage` of total posts.
+</ResponseField>
+
+---
+
+## GET /api/v1/analytics/tweets
+
+Returns engagement metrics for every published tweet that OpenTweet has tracked: likes, retweets, impressions, and computed engagement rate.
+
+<Note>
+  This endpoint requires an **Advanced** or **Agency** plan. Calling it on a Pro plan returns `403 Forbidden`.
+</Note>
+
+### Query parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `period` | number or `"all"` | `30` | Number of days to look back (7–365), or `"all"` for your full history |
+| `x_account_id` | string | — | Filter results to a single connected X account (multi-account workspaces) |
+
+```bash
+curl -H 'Authorization: Bearer ot_your_key' \
+  'https://opentweet.io/api/v1/analytics/tweets?period=30'
+```
+
+### Response
+
+```json
+{
+  "has_x_account": true,
+  "has_data": true,
+  "summary": {
+    "total_tracked_tweets": 85,
+    "avg_engagement_rate": 3.2,
+    "avg_impressions": 1250,
+    "avg_likes": 15.4,
+    "avg_retweets": 3.1,
+    "total_impressions": 106250
+  },
+  "top_performers": [
+    {
+      "x_post_id": "1234567890",
+      "text_preview": "Just shipped...",
+      "posted_at": "2026-06-20T10:00:00Z",
+      "likes": 45,
+      "retweets": 12,
+      "impressions": 5200,
+      "engagement_rate": 5.1
+    }
+  ]
+}
+```
+
+### Response fields
+
+<ResponseField name="has_x_account" type="boolean">
+  `true` if at least one X account is connected to your workspace.
+</ResponseField>
+
+<ResponseField name="has_data" type="boolean">
+  `false` when no tracked tweets fall within the requested `period`. Check this field before rendering charts.
+</ResponseField>
+
+<ResponseField name="summary.avg_engagement_rate" type="number">
+  Average engagement rate across all tracked tweets in the period, expressed as a percentage.
+</ResponseField>
+
+<ResponseField name="top_performers" type="array">
+  Up to 10 tweets with the highest engagement rate in the period, sorted descending.
+</ResponseField>
+
+---
+
+## GET /api/v1/analytics/best-times
+
+Analyzes your recent publishing patterns to surface the hours and days when you post most consistently. Use this data to inform your scheduling decisions.
+
+<Note>
+  This endpoint requires at least **3 published posts** before it returns meaningful data. If you have fewer, `has_enough_data` will be `false` and the `best_hours` and `best_days` arrays will be empty.
+</Note>
+
+```bash
+curl -H 'Authorization: Bearer ot_your_key' \
+  https://opentweet.io/api/v1/analytics/best-times
+```
+
+### Response
+
+```json
+{
+  "has_enough_data": true,
+  "total_posts_analyzed": 15,
+  "best_hours": [
+    { "hour": 9, "label": "9AM", "count": 5 }
+  ],
+  "best_days": [
+    { "day": "Monday", "count": 4 }
+  ],
+  "summary": "Most active days: Monday, Wednesday. Best posting hours: 9AM, 2PM"
+}
+```
+
+### Response fields
+
+<ResponseField name="has_enough_data" type="boolean">
+  `false` when fewer than 3 published posts exist. Render a prompt to publish more before surfacing recommendations.
+</ResponseField>
+
+<ResponseField name="best_hours" type="array">
+  Hours ranked by how often you publish at that time. Each item: `hour` (0–23), `label` (human-readable), `count`.
+</ResponseField>
+
+<ResponseField name="best_days" type="array">
+  Days of the week ranked by publishing frequency. Each item: `day` (full name), `count`.
+</ResponseField>
+
+<ResponseField name="summary" type="string">
+  A plain-language sentence summarising your top days and hours — ready to display directly in a UI.
+</ResponseField>
+
+<Tip>
+  The recommendations in `best_hours` and `best_days` reflect **your actual posting history**, not generic industry averages. The more posts you publish, the more accurate the suggestions become.
+</Tip>

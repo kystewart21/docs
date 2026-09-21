@@ -1,0 +1,62 @@
+---
+title: 'Recycle Your Best Posts with the Evergreen Queue'
+sidebarTitle: 'Evergreen Queue'
+description: 'The evergreen queue automatically re-posts your strongest content on a cooldown you set. Mark a tweet evergreen and OpenTweet recycles it after the cooldown expires.'
+---
+
+The evergreen queue lets your best content keep working for you long after its original publish date. Mark any post as evergreen, set a cooldown period, and OpenTweet automatically re-posts it once the cooldown expires — so new followers discover your top content without you rewriting a single word.
+
+## How It Works
+
+<Steps>
+  <Step title="Mark a post as evergreen">
+    Open any published post and click **Add to Evergreen**. The post joins your evergreen pool immediately.
+  </Step>
+  <Step title="Set a cooldown">
+    Choose how long OpenTweet waits before re-posting — minimum 7 days. Most accounts do well with 30 days or more.
+  </Step>
+  <Step title="Let OpenTweet handle the rest">
+    When the cooldown expires, OpenTweet schedules the post automatically. It lands on your calendar like any other scheduled post, so you can review it before it goes out (or configure auto-approve to skip that step).
+  </Step>
+</Steps>
+
+## Setting Up the Evergreen Queue in the Dashboard
+
+1. Open any published post from **Dashboard → Calendar** or **Posts**.
+2. Click **Add to Evergreen** in the post options menu.
+3. Set your preferred cooldown period (minimum 7 days).
+4. Click **Save**. The post now appears in **Dashboard → Evergreen Queue** alongside its next scheduled re-post date.
+
+To pause, edit, or remove a post from the pool, open it from the Evergreen Queue screen and use the options there.
+
+## Managing Evergreen Posts via the API and MCP
+
+Your AI agent can manage the evergreen queue directly using the MCP tools, or you can call the REST API:
+
+```
+# Add to evergreen pool (MCP prompt)
+Ask your agent: 'Add my top post from last month to the evergreen queue with a 30-day cooldown'
+```
+
+The agent calls `opentweet_add_to_evergreen` on your behalf. You can also use the full set of evergreen MCP tools directly:
+
+| MCP Tool | What it does |
+|----------|-------------|
+| `opentweet_add_to_evergreen` | Add a post to the pool with a specified cooldown |
+| `opentweet_remove_from_evergreen` | Remove a post from the pool permanently |
+| `opentweet_list_evergreen_posts` | List all posts currently in the evergreen pool |
+| `opentweet_update_evergreen_post` | Change a post's cooldown or pause it temporarily |
+| `opentweet_get_evergreen_settings` | Read your global evergreen configuration |
+| `opentweet_update_evergreen_settings` | Update posts-per-day, posting times, and default cooldown |
+| `opentweet_get_evergreen_history` | See which posts were recycled and when |
+
+Use `opentweet_update_evergreen_post` to pause a specific post without removing it from the pool — handy when you want a post to sit out a launch week but resume recycling afterward.
+
+<Tip>
+  **Getting the most from your evergreen queue:**
+
+  - Start with your top 10 posts by engagement — use `opentweet_get_top_posts` to find them fast.
+  - Set a cooldown long enough that followers won't notice the repeat. For most accounts, 30 days or more keeps the queue feeling fresh.
+  - Pause evergreen during product launches so your timeline stays focused and on-message.
+  - Review `opentweet_get_evergreen_history` monthly to retire posts that feel dated and replace them with newer high-performers.
+</Tip>

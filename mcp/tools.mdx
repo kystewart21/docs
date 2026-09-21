@@ -1,0 +1,108 @@
+---
+title: "OpenTweet MCP Tools Reference: All 43 Tools"
+sidebarTitle: "MCP Tools"
+description: "Every MCP tool exposed by the OpenTweet server, grouped by category: posting, articles, evergreen, media, analytics, discovery, accounts, and DM campaigns."
+---
+
+The OpenTweet MCP server exposes 43 tools, all prefixed with `opentweet_` — except DM campaign tools, which use the `dm_` prefix. These tools work in Claude Code, Codex, Cursor, Windsurf, ChatGPT, OpenClaw, Hermes, and any other MCP-compatible client.
+
+## Posting
+
+Use these 10 tools to create, edit, schedule, publish, and repurpose posts on X.
+
+| Tool | Purpose |
+|---|---|
+| `opentweet_create_tweet` | Create a single post as a draft, scheduled post, or publish it immediately |
+| `opentweet_create_thread` | Create a multi-tweet thread with optional per-tweet media attachments |
+| `opentweet_list_tweets` | List your posts, filterable by status: `scheduled`, `posted`, `draft`, or `failed` |
+| `opentweet_get_tweet` | Fetch a single post by its ID |
+| `opentweet_update_tweet` | Edit the text, media, or scheduled time of a draft or scheduled post |
+| `opentweet_delete_tweet` | Delete a post, with an option to also remove it from X |
+| `opentweet_publish_tweet` | Publish an existing draft or scheduled post to X right now |
+| `opentweet_schedule_tweet` | Set or change the scheduled publish time of a post |
+| `opentweet_batch_schedule` | Schedule up to 50 existing posts at once |
+| `opentweet_repurpose_tweet` | Rewrite an existing tweet into fresh variations |
+
+## Articles
+
+Use these 6 tools to create and manage long-form X Articles.
+
+| Tool | Purpose |
+|---|---|
+| `opentweet_create_article` | Create a long-form X Article from markdown as a draft, scheduled, or published |
+| `opentweet_get_article` | Fetch a single article by its ID |
+| `opentweet_list_articles` | List your articles, filterable by status |
+| `opentweet_update_article` | Edit a draft, scheduled, or failed article |
+| `opentweet_publish_article` | Publish an article to X right now |
+| `opentweet_delete_article` | Delete an article |
+
+## Evergreen
+
+Use these 8 tools to build and manage your evergreen recycling pool — posts that get reposted automatically on a cooldown schedule.
+
+| Tool | Purpose |
+|---|---|
+| `opentweet_add_to_evergreen` | Add a post to the evergreen recycling pool |
+| `opentweet_remove_from_evergreen` | Remove a post from the evergreen pool |
+| `opentweet_list_evergreen_posts` | List posts currently in the evergreen pool |
+| `opentweet_get_evergreen_post` | Fetch a single evergreen post by ID |
+| `opentweet_update_evergreen_post` | Change an evergreen post's cooldown period or pause state |
+| `opentweet_get_evergreen_settings` | Read your evergreen config: posts per day, posting times, and cooldown |
+| `opentweet_update_evergreen_settings` | Update your evergreen posting config |
+| `opentweet_get_evergreen_history` | See which evergreen posts were recycled and when |
+
+## Media
+
+Use these 3 tools to upload or generate images and videos to attach to your posts.
+
+| Tool | Purpose |
+|---|---|
+| `opentweet_upload_media` | Upload an image or video and get a URL to attach to a post |
+| `opentweet_generate_image` | Generate an image from a text prompt for use in a post |
+| `opentweet_generate_video` | Generate a video from a text prompt for use in a post |
+
+## Analytics
+
+Use these 6 tools to measure performance, understand growth, and find the best times to post.
+
+| Tool | Purpose |
+|---|---|
+| `opentweet_get_analytics` | Account-level stats: posting rate, streaks, trends, and content categories |
+| `opentweet_get_top_posts` | Best-performing published posts ranked by engagement |
+| `opentweet_get_profile_growth` | Profile growth metrics over a selected time range |
+| `opentweet_get_best_times` | Suggested posting times based on your recent activity |
+| `opentweet_analyze_best_times` | Deeper analysis of your highest-performing posting windows |
+| `opentweet_get_content_gaps` | Find topics and formats you haven't covered recently |
+
+## Discovery
+
+| Tool | Purpose |
+|---|---|
+| `opentweet_search_inspiration` | Search saved and public tweets for inspiration on a topic |
+
+## Accounts
+
+Use these 3 tools to inspect connected X accounts and cross-posting state.
+
+| Tool | Purpose |
+|---|---|
+| `opentweet_get_account` | Get details for a single connected X account |
+| `opentweet_list_accounts` | List every X account connected to your workspace |
+| `opentweet_list_platforms` | Show cross-posting state: which networks are connected and where a post would go |
+
+## DM Campaigns
+
+Use these 6 tools to run outbound DM campaigns with a human-in-the-loop approval step.
+
+<Note>
+  DM campaign tools (`dm_*`) require an **Advanced** or **Agency** plan.
+</Note>
+
+| Tool | Purpose |
+|---|---|
+| `dm_campaign_create` | Create a campaign and kick off lead discovery and message drafting |
+| `dm_campaign_list` | List all campaigns with their current status and funnel stats |
+| `dm_campaign_report` | Get the full discovery-to-reply funnel report for one campaign |
+| `dm_leads_list` | List leads in a campaign, filterable by state |
+| `dm_lead_approve` | Approve a lead so its DM is queued — the human-in-the-loop step |
+| `dm_inbox_list` | List reply conversations grouped by lead with reply classification |

@@ -1,0 +1,91 @@
+---
+title: 'POST /api/v1/posts/batch-schedule — Schedule Up to 50 Posts'
+sidebarTitle: 'Batch Schedule'
+description: 'Schedule up to 50 existing draft posts at once with a single request. Pass an array of post IDs with their target dates. Requires an active subscription.'
+---
+
+Use this endpoint to schedule multiple existing draft posts in a single API call. Instead of calling the single-post schedule endpoint repeatedly, send a batch of up to 50 post IDs with their respective publish times. Each scheduled post counts toward your plan's daily post limit.
+
+## Endpoint
+
+```
+POST https://opentweet.io/api/v1/posts/batch-schedule
+```
+
+---
+
+## Request Body
+
+<ParamField body="schedules" type="array" required>
+  Array of scheduling objects, one per post. Maximum 50 entries. Each object must include `post_id` (string) and `scheduled_date` (ISO 8601 string in the future).
+</ParamField>
+
+<ParamField body="x_account_id" type="string">
+  Apply a specific connected X account to all posts in the batch. Omit to use the default account for each post.
+</ParamField>
+
+<ParamField body="community_id" type="string">
+  Post all items in the batch to a specific X Community.
+</ParamField>
+
+<ParamField body="share_with_followers" type="boolean">
+  When `community_id` is set, also share all community posts with your followers. Defaults to `false`.
+</ParamField>
+
+```json
+{
+  "schedules": [
+    { "post_id": "65f1a2b3...", "scheduled_date": "2026-07-07T09:00:00Z" },
+    { "post_id": "65f1a2b4...", "scheduled_date": "2026-07-08T14:00:00Z" }
+  ],
+  "x_account_id": "optional — applies to all if not set per post",
+  "community_id": "optional",
+  "share_with_followers": false
+}
+```
+
+---
+
+## Example
+
+```bash
+curl -X POST https://opentweet.io/api/v1/posts/batch-schedule \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "schedules": [
+      {"post_id": "POST_ID_1", "scheduled_date": "2026-07-07T09:00:00Z"},
+      {"post_id": "POST_ID_2", "scheduled_date": "2026-07-08T14:00:00Z"}
+    ]
+  }'
+```
+
+---
+
+## Response
+
+OpenTweet processes each post independently. Successfully scheduled posts appear in `scheduled`; any that could not be scheduled are listed in `errors` with a reason.
+
+```json
+{
+  "success": true,
+  "message": "2 post(s) scheduled",
+  "scheduled": [
+    {
+      "id": "POST_ID_1",
+      "text": "Monday motivation",
+      "scheduled_date": "2026-07-07T09:00:00Z"
+    }
+  ],
+  "errors": [
+    {
+      "post_id": "BAD_ID",
+      "error": "Post not found"
+    }
+  ]
+}
+```
+
+<Note>
+  The `errors` array is only present in the response when one or more posts fail to schedule. A request that schedules some posts successfully and fails others still returns `"success": true` — check `errors` to confirm all posts were processed as expected.
+</Note>

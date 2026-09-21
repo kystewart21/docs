@@ -1,0 +1,168 @@
+---
+title: 'GET /api/v1/posts — List and Filter Your Posts'
+sidebarTitle: 'List Posts'
+description: 'Retrieve a paginated list of your OpenTweet posts. Filter by status (scheduled, posted, draft, failed) and by X account for multi-account workspaces.'
+---
+
+Use these endpoints to read, update, and delete posts in your OpenTweet library. The list endpoint returns a paginated collection you can filter by status or X account. The single-post endpoints let you fetch, edit, or remove an individual post by its ID.
+
+---
+
+## List Posts
+
+```
+GET https://opentweet.io/api/v1/posts
+```
+
+Returns a paginated list of all posts in your workspace.
+
+### Query Parameters
+
+<ParamField query="page" type="integer">
+  Page number to return. Defaults to `1`.
+</ParamField>
+
+<ParamField query="limit" type="integer">
+  Number of posts per page. Defaults to `20`, maximum `100`.
+</ParamField>
+
+<ParamField query="status" type="string">
+  Filter posts by status. Accepted values: `scheduled`, `posted`, `draft`, `failed`.
+</ParamField>
+
+<ParamField query="x_account_id" type="string">
+  Filter posts belonging to a specific connected X account. Useful in multi-account workspaces.
+</ParamField>
+
+### Examples
+
+```bash
+# List all posts
+curl -H 'Authorization: Bearer ot_your_key' \
+  https://opentweet.io/api/v1/posts
+
+# List scheduled posts only
+curl -H 'Authorization: Bearer ot_your_key' \
+  'https://opentweet.io/api/v1/posts?status=scheduled'
+
+# Paginate
+curl -H 'Authorization: Bearer ot_your_key' \
+  'https://opentweet.io/api/v1/posts?page=2&limit=50'
+```
+
+### Response
+
+```json
+{
+  "posts": [
+    {
+      "id": "65f1a2b3c4d5e6f7a8b9c0d1",
+      "text": "Just shipped a new feature!",
+      "scheduled_date": "2026-07-01T10:00:00Z",
+      "posted": false,
+      "failed": false,
+      "is_thread": false,
+      "review_status": "approved",
+      "created_at": "2026-06-30T08:30:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 142,
+    "pages": 8
+  }
+}
+```
+
+---
+
+## Get a Single Post
+
+```
+GET https://opentweet.io/api/v1/posts/:id
+```
+
+Returns the full post object for the given ID.
+
+```bash
+curl -H 'Authorization: Bearer ot_your_key' \
+  https://opentweet.io/api/v1/posts/65f1a2b3c4d5e6f7a8b9c0d1
+```
+
+---
+
+## Update a Post
+
+```
+PUT https://opentweet.io/api/v1/posts/:id
+```
+
+Update any editable field on a draft or scheduled post. All body fields are optional — include only the fields you want to change.
+
+<ParamField body="text" type="string">
+  New post content.
+</ParamField>
+
+<ParamField body="scheduled_date" type="string">
+  New scheduled publish time (ISO 8601). Set to `null` to unschedule the post and revert it to a draft.
+</ParamField>
+
+<ParamField body="media_urls" type="array of strings">
+  Replace the post's attached media URLs (maximum 4).
+</ParamField>
+
+<ParamField body="is_thread" type="boolean">
+  Toggle thread mode on or off.
+</ParamField>
+
+<ParamField body="thread_tweets" type="array of strings">
+  Replace the thread parts with a new array of tweet texts.
+</ParamField>
+
+<ParamField body="category" type="string">
+  Update the post's category label.
+</ParamField>
+
+```bash
+curl -X PUT https://opentweet.io/api/v1/posts/65f1a2b3c4d5e6f7a8b9c0d1 \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "Updated copy.", "scheduled_date": "2026-07-12T10:00:00Z"}'
+```
+
+<Warning>
+  The `PUT` endpoint returns `400 Bad Request` if the post has already been published to X. Delete the post and create a new one if you need to make changes after publishing.
+</Warning>
+
+---
+
+## Delete a Post
+
+```
+DELETE https://opentweet.io/api/v1/posts/:id
+```
+
+Deletes a post from OpenTweet and, by default, removes the corresponding post from X as well.
+
+```bash
+# Delete from OpenTweet and X
+curl -X DELETE https://opentweet.io/api/v1/posts/65f1a2b3c4d5e6f7a8b9c0d1 \
+  -H 'Authorization: Bearer ot_your_key'
+
+# Delete from OpenTweet only (keep the post live on X)
+curl -X DELETE 'https://opentweet.io/api/v1/posts/65f1a2b3c4d5e6f7a8b9c0d1?delete_from_x=false' \
+  -H 'Authorization: Bearer ot_your_key'
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Post deleted",
+  "x_deleted": true
+}
+```
+
+Add `?delete_from_x=false` to remove the post from OpenTweet without deleting it from X. In that case, `x_deleted` returns `false`.

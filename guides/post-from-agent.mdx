@@ -1,0 +1,136 @@
+---
+title: 'Post to X from an AI Agent Using OpenTweet'
+sidebarTitle: 'Agent Posting'
+description: 'Wire any AI agent to X in minutes using the OpenTweet MCP server or REST API. One ot_ key gives your agent 43 tools — no X developer account, no ban risk.'
+---
+
+OpenTweet gives any AI agent the ability to post, schedule, search, and manage content on X without requiring a separate X developer account. You connect your X account once through the OpenTweet dashboard, then hand your agent a single `ot_` API key and choose between two integration paths: the MCP server (for Claude, Cursor, ChatGPT, OpenClaw, and Hermes) or the REST API (for any language or framework).
+
+## Choose Your Integration Path
+
+<CardGroup cols={2}>
+  <Card title="MCP Server" icon="plug">
+    Best for AI clients that support the Model Context Protocol. Your agent gets 43 tools out of the box — no custom code required.
+  </Card>
+  <Card title="REST API" icon="code">
+    Best for custom agents, scripts, and any language. Full control over request logic and scheduling.
+  </Card>
+</CardGroup>
+
+---
+
+## Path 1: MCP Server
+
+The OpenTweet MCP server exposes 43 tools covering posting, scheduling, threads, analytics, DMs, and more. Any MCP-compatible client can use it with a three-step setup.
+
+### Step 1: Get Your API Key
+
+Go to [https://opentweet.io/dashboard](https://opentweet.io/dashboard) and copy your `ot_` key from **Settings → API Keys**.
+
+### Step 2: Add the MCP Server Config
+
+Add the following block to your MCP client's configuration file (location varies by client — check your client's docs for the exact path):
+
+```json
+{
+  "mcpServers": {
+    "opentweet": {
+      "type": "streamable-http",
+      "url": "https://mcp.opentweet.io/mcp",
+      "headers": { "Authorization": "Bearer ot_your_key" }
+    }
+  }
+}
+```
+
+Replace `ot_your_key` with your actual key. Store the key in a secrets manager or environment variable rather than committing it to your config file.
+
+### Step 3: Restart Your MCP Client
+
+Restart the client to load the new server. Once connected, your agent has access to all 43 OpenTweet tools.
+
+### Step 4: Verify the Connection
+
+Ask your agent to call `opentweet_list_tweets`. If it returns a list of your recent posts, the connection is working correctly.
+
+---
+
+## Path 2: REST API
+
+The REST API works with any language. The examples below show how to post immediately or schedule a post for a future time.
+
+<CodeGroup>
+
+```python agent.py
+import requests
+
+OPENTWEET_KEY = "ot_your_key"
+
+def post_tweet(text: str, schedule_at: str = None):
+    payload = {"text": text}
+    if schedule_at:
+        payload["scheduled_date"] = schedule_at
+    else:
+        payload["publish_now"] = True
+
+    resp = requests.post(
+        "https://opentweet.io/api/v1/posts",
+        headers={"Authorization": f"Bearer {OPENTWEET_KEY}"},
+        json=payload
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+# Post immediately
+post_tweet("Shipped v2.0 today.")
+
+# Schedule for tomorrow 9am
+post_tweet("Big launch tomorrow!", "2026-07-10T09:00:00Z")
+```
+
+```javascript agent.js
+const OPENTWEET_KEY = process.env.OPENTWEET_API_KEY;
+
+async function postTweet(text, scheduledAt = null) {
+  const payload = { text };
+  if (scheduledAt) {
+    payload.scheduled_date = scheduledAt;
+  } else {
+    payload.publish_now = true;
+  }
+
+  const res = await fetch('https://opentweet.io/api/v1/posts', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${OPENTWEET_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) throw new Error(`OpenTweet error: ${res.status}`);
+  return res.json();
+}
+
+// Publish now
+await postTweet('Shipped v2.0 today.');
+
+// Schedule
+await postTweet('Launch tomorrow!', '2026-07-10T09:00:00Z');
+```
+
+</CodeGroup>
+
+---
+
+## Safety and Key Management
+
+OpenTweet posts through the official X API — no scraping, no browser automation, and no risk of account suspension from automation detection.
+
+- **Rotate or revoke** any `ot_` key instantly from the dashboard under **Settings → API Keys** without touching your X account credentials.
+- **Store keys in environment variables** (e.g., `OPENTWEET_API_KEY`). Never hardcode a key in source code or commit it to version control.
+- **One key per agent** is a good practice — it makes it easy to revoke access for a specific agent without affecting others.
+
+<Warning>
+  X restricts programmatic replies to other users' posts as of February 2026. Threads — which are replies to your own posts — are unaffected and work normally through OpenTweet.
+</Warning>

@@ -1,21 +1,18 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "name": "College Scorecard MCP",
+  "name": "OpenTweet",
   "theme": "luma",
-  "logo": {
-    "light": "https://media.brand.dev/3c579df3-3c63-4de0-93b4-2fac7209388b.png",
-    "dark": "https://media.brand.dev/3c579df3-3c63-4de0-93b4-2fac7209388b.png"
-  },
-  "favicon": "/favicon.svg",
+  "favicon": "https://media.brand.dev/0c196f4c-358f-454d-8117-fae05505e8a6.png",
   "colors": {
-    "primary": "#d83933",
-    "light": "#23639c"
+    "primary": "#ff511c",
+    "light": "#111827",
+    "dark": "#747474"
   },
   "navbar": {
     "primary": {
       "type": "button",
-      "label": "Get Started",
-      "href": "/introduction"
+      "label": "Start Free Trial",
+      "href": "https://opentweet.io/auth/login"
     }
   },
   "navigation": {
@@ -32,29 +29,31 @@
             ]
           },
           {
-            "group": "MCP Tools",
+            "group": "Connect Your Agent",
             "pages": [
-              "tools/overview",
-              "tools/search-schools",
-              "tools/get-school",
-              "tools/compare-schools",
-              "tools/find-programs"
+              "mcp/setup",
+              "mcp/tools",
+              "mcp/chatgpt"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/scheduling",
+              "features/threads",
+              "features/cross-posting",
+              "features/evergreen-queue",
+              "features/connectors",
+              "features/ai-studio"
             ]
           },
           {
             "group": "Guides",
             "pages": [
-              "guides/connecting-ai-agents",
-              "guides/school-comparison",
-              "guides/program-research"
-            ]
-          },
-          {
-            "group": "Reference",
-            "pages": [
-              "reference/data-fields",
-              "reference/filters-and-sorting",
-              "reference/faq"
+              "guides/post-from-agent",
+              "guides/bulk-scheduling",
+              "guides/x-articles",
+              "guides/dm-campaigns"
             ]
           }
         ]
@@ -63,18 +62,37 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "MCP Endpoint",
+            "group": "Overview",
             "pages": [
               "api/overview",
-              "api/tool-list",
-              "api/error-codes"
+              "api/authentication",
+              "api/rate-limits",
+              "api/errors"
             ]
           },
           {
-            "group": "College Scorecard Data",
+            "group": "Posts",
             "pages": [
-              "api/schools",
-              "api/programs"
+              "api/posts/create",
+              "api/posts/list",
+              "api/posts/schedule",
+              "api/posts/publish",
+              "api/posts/batch-schedule"
+            ]
+          },
+          {
+            "group": "Articles & Media",
+            "pages": [
+              "api/articles",
+              "api/upload"
+            ]
+          },
+          {
+            "group": "Analytics & Accounts",
+            "pages": [
+              "api/analytics",
+              "api/accounts",
+              "api/cross-posting"
             ]
           }
         ]

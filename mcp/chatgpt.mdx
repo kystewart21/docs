@@ -1,0 +1,69 @@
+---
+title: "Connect OpenTweet MCP to ChatGPT"
+sidebarTitle: "ChatGPT"
+description: "Add the OpenTweet MCP server to ChatGPT so your agent can post, schedule threads, and read analytics on X without a developer account."
+---
+
+ChatGPT supports MCP servers and can connect to OpenTweet using the hosted endpoint at `https://mcp.opentweet.io/mcp`. Once connected, your ChatGPT agent can post tweets, schedule threads, pull analytics, and manage your evergreen queue — all from a single conversation. You need an `ot_` API key from [opentweet.io/dashboard](https://opentweet.io/dashboard) to get started.
+
+<Note>
+  This guide covers connecting ChatGPT (OpenAI's agent product) to OpenTweet via MCP. The same `ot_` API key also works with Claude, Cursor, and Windsurf — see the [MCP Setup page](/mcp/setup) for those clients.
+</Note>
+
+## Step 1: Get Your API Key
+
+Sign in at [opentweet.io/dashboard](https://opentweet.io/dashboard), navigate to the **Developer** section, and create a new key. Your key will start with `ot_` — copy it before closing the dialog.
+
+## Step 2: Add the MCP Server in ChatGPT
+
+Open ChatGPT and go to **Settings → Connected Apps** (or **MCP Servers**, depending on your plan). Add a new MCP server with the following values:
+
+- **URL**: `https://mcp.opentweet.io/mcp`
+- **Transport**: `streamable-http`
+- **Authorization header**: `Bearer ot_your_key`
+
+If your ChatGPT client accepts a JSON config block directly, paste the following instead:
+
+```json
+{
+  "mcpServers": {
+    "opentweet": {
+      "type": "streamable-http",
+      "url": "https://mcp.opentweet.io/mcp",
+      "headers": { "Authorization": "Bearer ot_your_key" }
+    }
+  }
+}
+```
+
+## Step 3: Verify the Tools Appear
+
+Ask ChatGPT: *"List my OpenTweet posts."* It should call `opentweet_list_tweets` and return your post queue. If 43 tools appear in the tools panel, you're fully connected.
+
+## Step 4: Try Your First Action
+
+Ask ChatGPT: *"Schedule a tweet saying [your text] for tomorrow at 9am."* ChatGPT will call `opentweet_schedule_tweet` and respond with the new post ID and confirmed schedule time.
+
+## Example Prompts Your Agent Can Handle
+
+Once connected, ask your ChatGPT agent things like:
+
+- *"Post a tweet about [topic] right now."*
+- *"Schedule a thread about [topic] for Monday at 9am."*
+- *"Show me my top-performing posts from the last 30 days."*
+- *"Add my best tweet to the evergreen queue."*
+- *"Generate an image for my next post about [topic] and schedule it for Friday."*
+
+<Tip>
+  To target a specific X account, ask ChatGPT to call `opentweet_list_accounts` first to find your account ID, then reference that ID in subsequent posting calls. Alternatively, tell the agent which account handle to use and it will resolve the ID automatically.
+</Tip>
+
+## Troubleshooting
+
+<Warning>
+  **Connection failed** — Double-check that the URL is exactly `https://mcp.opentweet.io/mcp`. The domain `api.opentweet.io` does not resolve and will cause a connection error.
+
+  **401 errors** — Verify that your key starts with `ot_` and is formatted as `Authorization: Bearer ot_...` in the header field. Keys without the `ot_` prefix will be rejected.
+
+  **403 on posting** — Your subscription may be inactive or on a free plan. Check your plan status at [opentweet.io/dashboard](https://opentweet.io/dashboard) and confirm that `subscription.has_access` is `true` in the `/me` API response.
+</Warning>

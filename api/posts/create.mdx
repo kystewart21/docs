@@ -1,0 +1,165 @@
+---
+title: 'POST /api/v1/posts — Create and Publish Posts'
+sidebarTitle: 'Create Post'
+description: 'Create a single post, thread, or bulk-create up to 50 posts. Pass scheduled_date to schedule, publish_now to post immediately, or omit both to save as draft.'
+---
+
+Use this endpoint to create any type of post in OpenTweet — a single tweet, a thread, or a bulk batch of up to 50 posts. Depending on the fields you include, OpenTweet will save the post as a draft, schedule it for a future time, or publish it to X immediately.
+
+## Endpoint
+
+```
+POST https://opentweet.io/api/v1/posts
+```
+
+**Authentication:** Include your API key in every request.
+
+```
+Authorization: Bearer ot_your_key
+```
+
+**Returns:** `201 Created` on success.
+
+---
+
+## Request Body
+
+<ParamField body="text" type="string" required>
+  The post content. X limits posts to 280 characters (25,000 characters on X Premium). Required for single posts; omit when using `posts` for bulk creation.
+</ParamField>
+
+<ParamField body="scheduled_date" type="string">
+  ISO 8601 datetime string for a future publish time (e.g. `"2026-07-10T09:00:00Z"`). Mutually exclusive with `publish_now`.
+</ParamField>
+
+<ParamField body="publish_now" type="boolean">
+  Set to `true` to publish the post to X immediately. Cannot be combined with `scheduled_date` or the `posts` bulk array.
+</ParamField>
+
+<ParamField body="is_thread" type="boolean">
+  Set to `true` when creating a thread. Use `thread_tweets` to supply the individual parts.
+</ParamField>
+
+<ParamField body="thread_tweets" type="array of strings">
+  Array of tweet texts, one string per thread part. Example: `["1/ First point", "2/ Second point"]`.
+</ParamField>
+
+<ParamField body="thread_media" type="array of arrays">
+  Per-tweet media URLs aligned by index with `thread_tweets`. Use an empty array for parts with no media. Example: `[["url1"], [], ["url3"]]`.
+</ParamField>
+
+<ParamField body="media_urls" type="array of strings">
+  Media URLs to attach to a single post (maximum 4). Upload files first using `POST /api/v1/upload` to obtain URLs.
+</ParamField>
+
+<ParamField body="platforms" type="array of strings">
+  Target platforms for cross-posting. Accepted values: `"x"`, `"bluesky"`, `"linkedin"`. Omitting this field follows your workspace's auto cross-post setting — it is **not** equivalent to X-only.
+</ParamField>
+
+<ParamField body="category" type="string">
+  A label to categorize the post within OpenTweet (e.g. `"product"`, `"marketing"`).
+</ParamField>
+
+<ParamField body="x_account_id" type="string">
+  Target a specific connected X account. Useful in multi-account workspaces.
+</ParamField>
+
+<ParamField body="community_id" type="string">
+  Post to a specific X Community by community ID.
+</ParamField>
+
+<ParamField body="share_with_followers" type="boolean">
+  When posting to a community, also share the post with your followers. Defaults to `false`.
+</ParamField>
+
+<ParamField body="posts" type="array">
+  Array of post objects for bulk creation (up to 50). Each object supports the same fields as a single post (`text`, `scheduled_date`, `media_urls`, etc.). Cannot be combined with `publish_now`.
+</ParamField>
+
+---
+
+## Examples
+
+<CodeGroup>
+
+```bash Single post — publish now
+curl -X POST https://opentweet.io/api/v1/posts \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "Hello from the API!", "publish_now": true}'
+```
+
+```bash Single post — scheduled
+curl -X POST https://opentweet.io/api/v1/posts \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "Launch day!", "scheduled_date": "2026-07-10T09:00:00Z"}'
+```
+
+```bash Thread
+curl -X POST https://opentweet.io/api/v1/posts \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "text": "Here is what I learned:",
+    "is_thread": true,
+    "thread_tweets": ["1/ Point one", "2/ Point two", "3/ Point three"],
+    "scheduled_date": "2026-07-10T09:00:00Z"
+  }'
+```
+
+```bash Bulk create (up to 50)
+curl -X POST https://opentweet.io/api/v1/posts \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "posts": [
+      {"text": "Monday motivation", "scheduled_date": "2026-07-07T09:00:00Z"},
+      {"text": "Tuesday tip", "scheduled_date": "2026-07-08T14:00:00Z"}
+    ]
+  }'
+```
+
+```bash Cross-post to multiple platforms
+curl -X POST https://opentweet.io/api/v1/posts \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "text": "Shipped cross-posting today.",
+    "platforms": ["x", "bluesky", "linkedin"],
+    "publish_now": true
+  }'
+```
+
+</CodeGroup>
+
+---
+
+## Response
+
+A successful request returns `201 Created` with a JSON body. For cross-posted requests, the `results` array reports the outcome per platform.
+
+```json
+{
+  "success": true,
+  "count": 1,
+  "posts": [{ "id": "65f1a2b3...", "text": "Hello!", "posted": true }],
+  "results": [
+    {
+      "platform": "x",
+      "status": "published",
+      "post_id": "183400001",
+      "url": "https://x.com/you/status/183400001"
+    },
+    {
+      "platform": "bluesky",
+      "status": "skipped",
+      "skip_reason": "Over 300 character Bluesky limit"
+    }
+  ]
+}
+```
+
+<Warning>
+  Omitting `platforms` is **not** the same as X-only posting. When you omit the field, OpenTweet applies your workspace's auto cross-post setting. Pass `"platforms": ["x"]` explicitly if you want to restrict the post to X only.
+</Warning>

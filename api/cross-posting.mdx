@@ -1,0 +1,102 @@
+---
+title: 'GET /api/v1/cross-posting — Platforms and Limits'
+sidebarTitle: 'Cross-Posting'
+description: 'Read which social networks are connected, where a post without a platforms field would go, and per-network character limits — before you create a post.'
+---
+
+Before you create a post, call this endpoint to understand exactly where it will land. It tells you which social platforms are connected, whether automatic cross-posting is enabled, which networks are healthy right now, and the character and media limits that apply to each one. Treat it as a preflight check — reading it saves you from validation errors and unexpected delivery failures at post-creation time.
+
+## Endpoint
+
+```
+GET https://opentweet.io/api/v1/cross-posting
+```
+
+## Example request
+
+```bash
+curl -H 'Authorization: Bearer ot_your_key' \
+  https://opentweet.io/api/v1/cross-posting
+```
+
+## Response
+
+```json
+{
+  "auto_cross_post": true,
+  "default_targets": ["x", "bluesky", "linkedin"],
+  "deliverable_targets": ["x", "bluesky", "linkedin"],
+  "platforms": [
+    {
+      "platform": "x",
+      "label": "X",
+      "connected": true,
+      "usable": true,
+      "needs_reconnect": false,
+      "limits": {
+        "max_text_length": 280,
+        "text_unit": "weighted",
+        "max_images": 4,
+        "max_thread_parts": 25
+      }
+    },
+    {
+      "platform": "bluesky",
+      "label": "Bluesky",
+      "connected": true,
+      "usable": true,
+      "needs_reconnect": false,
+      "limits": {
+        "max_text_length": 300,
+        "text_unit": "grapheme",
+        "max_images": 4
+      }
+    },
+    {
+      "platform": "linkedin",
+      "label": "LinkedIn",
+      "connected": true,
+      "usable": true,
+      "needs_reconnect": false,
+      "limits": {
+        "max_text_length": 3000,
+        "text_unit": "codeunit",
+        "max_images": 20
+      }
+    }
+  ]
+}
+```
+
+## Key response fields
+
+| Field | Meaning |
+|---|---|
+| `auto_cross_post` | When `true`, posts submitted without a `platforms` field go to every connected platform |
+| `default_targets` | Where a post with no `platforms` field actually goes right now |
+| `deliverable_targets` | Subset of `default_targets` with a working, authenticated connection |
+| `needs_reconnect` | `true` when a platform's token has expired and requires reauthorization |
+
+<Warning>
+  Read `default_targets` rather than assuming — it is the live resolver output and changes whenever you connect, disconnect, or re-order platforms. A network that appears in `default_targets` but not in `deliverable_targets` has a broken connection and **will fail** until you reconnect it.
+</Warning>
+
+## Text unit differences
+
+Each platform counts characters in its own way. You need to account for this before you validate text length client-side.
+
+| Platform | `text_unit` | What it means |
+|---|---|---|
+| X | `weighted` | A URL always costs **23 characters** regardless of its actual length |
+| Bluesky | `grapheme` | An emoji or accented letter costs **1** — count by visible characters |
+| LinkedIn | `codeunit` (UTF-16) | An emoji costs **2** — each UTF-16 code unit counts separately |
+
+<Tip>
+  When you publish the same text to multiple platforms, validate it against the strictest limit in your `deliverable_targets` — usually X's 280-character weighted limit.
+</Tip>
+
+## LinkedIn token expiry
+
+LinkedIn OAuth tokens expire after **60 days**. When a LinkedIn token lapses, the endpoint returns `needs_reconnect: true` for the LinkedIn platform object and LinkedIn drops out of `deliverable_targets`.
+
+Reconnect the account from **Dashboard → Settings → Connected Accounts** to restore delivery.

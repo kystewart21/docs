@@ -1,0 +1,88 @@
+---
+title: 'Run X DM Campaigns with Human Approval'
+sidebarTitle: 'DM Campaigns'
+description: 'OpenTweet DM campaigns find leads from real X engagement, draft personalized messages, and send each one through the official API — but only after you approve it.'
+---
+
+DM Campaigns let you reach people who have already engaged with your posts — replied, liked, or followed — with a personalized direct message. Unlike fully automated DM tools, OpenTweet requires your explicit approval before any message is sent. Every draft sits in a review queue until you approve or skip it, and every approved message goes out through the official X DM API — no browser automation, no scraping, no account risk. DM Campaigns are available on Advanced and Agency plans.
+
+## How Campaigns Work
+
+<Steps>
+  <Step title="Define the campaign">
+    Choose a **source** (replies to a specific post, likes on a post, or new followers) and write a **message template**. Use `{{name}}` and `{{context}}` placeholders where you want the AI to personalize each message.
+  </Step>
+  <Step title="Lead discovery">
+    OpenTweet scans real engagement data from your chosen source and builds a list of candidate leads. Qualification filters (Advanced and Agency only) remove bots, private accounts, and profiles that don't match your criteria.
+  </Step>
+  <Step title="Message drafting">
+    The AI drafts a personalized message for each qualified lead using your template as a guide. Drafts are queued for your review — nothing is sent at this stage.
+  </Step>
+  <Step title="Your approval">
+    Open the campaign inbox and review each draft. Click **Approve** to queue the message for delivery, or **Skip** to discard it. Nothing sends until you approve it individually.
+  </Step>
+  <Step title="Delivery">
+    Approved messages are delivered through the official X DM API in the order you approved them. OpenTweet respects X's DM rate limits automatically.
+  </Step>
+  <Step title="Reply tracking">
+    Replies from leads flow back into the campaign inbox, grouped by conversation. Respond directly from the inbox or hand off to your agent.
+  </Step>
+</Steps>
+
+---
+
+## Create a Campaign via MCP
+
+If your agent is connected to the OpenTweet MCP server, create a campaign with a single natural-language prompt:
+
+> "Create a DM campaign targeting people who replied to my MCP thread, with a message about [your offer]."
+
+The agent calls `dm_campaign_create` and returns a campaign ID. You can then review and approve leads from the dashboard or via MCP.
+
+---
+
+## Approve Leads
+
+You have two ways to approve queued messages:
+
+<CardGroup cols={2}>
+  <Card title="Via MCP" icon="terminal">
+    Call `dm_lead_approve` with the lead ID returned by the campaign. Useful for bulk-reviewing from a script or agent workflow — but still one approval per lead.
+  </Card>
+  <Card title="Via Dashboard" icon="browser">
+    Open the campaign, switch to the **Queued** tab, read each draft, and click **Approve** or **Skip**. The dashboard shows the lead's profile alongside their draft for context.
+  </Card>
+</CardGroup>
+
+---
+
+## View Campaign Results
+
+Track the full funnel for any campaign using two MCP tools or the dashboard's analytics tab:
+
+| Tool | What it returns |
+|------|-----------------|
+| `dm_campaign_report` | Full funnel: found → qualified → approved → sent → replied |
+| `dm_inbox_list` | Reply conversations grouped by lead |
+
+A typical campaign funnel looks like this:
+
+```
+Found: 412
+Qualified: 96
+Approved by you: 24
+Sent: 24
+Replied: 9
+```
+
+The gap between **Found** and **Qualified** reflects the qualification filters removing low-quality leads. The gap between **Qualified** and **Approved** is your own review — that friction is intentional and is what keeps campaigns effective and compliant.
+
+---
+
+<Warning>
+  DM campaigns use the official X API to send messages. X enforces DM rate limits; OpenTweet respects them automatically. Never approve messages in bulk without reading them — personalization is what makes campaigns effective and what keeps them out of spam filters.
+</Warning>
+
+<Note>
+  DM Campaigns require the **Advanced** ($29/mo) or **Agency** ($49/mo) plan.
+</Note>

@@ -1,0 +1,72 @@
+---
+title: 'POST /api/v1/upload — Upload Media for Posts'
+sidebarTitle: 'Upload Media'
+description: 'Upload an image or video to use in a tweet or thread. Returns a URL to pass in media_urls or thread_media when creating or updating a post.'
+---
+
+Before attaching media to a post, upload your file to OpenTweet. The upload endpoint accepts images and videos, stores them on a CDN, and returns a URL you can pass directly into `media_urls` (for single posts) or `thread_media` (for threads). You can reuse the same CDN URL across multiple posts.
+
+## Endpoint
+
+```
+POST https://opentweet.io/api/v1/upload
+```
+
+Send the request as `multipart/form-data` with your file in the `file` field.
+
+**Authentication:**
+```
+Authorization: Bearer ot_your_key
+```
+
+---
+
+## Supported Formats and Limits
+
+| Type | Formats | Max Size |
+|------|---------|----------|
+| Images | JPG, PNG, GIF, WebP | 5 MB |
+| Video | MP4, MOV | 20 MB |
+
+---
+
+## Example
+
+The typical workflow is a two-step process: upload first, then create the post with the returned URL.
+
+```bash
+# Step 1: Upload the image
+curl -X POST https://opentweet.io/api/v1/upload \
+  -H 'Authorization: Bearer ot_your_key' \
+  -F 'file=@screenshot.png'
+
+# Response: { "url": "https://cdn.opentweet.io/uploaded-file.png" }
+
+# Step 2: Use the URL in a post
+curl -X POST https://opentweet.io/api/v1/posts \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "text": "Check out this screenshot!",
+    "media_urls": ["https://cdn.opentweet.io/uploaded-file.png"],
+    "scheduled_date": "2026-07-10T09:00:00Z"
+  }'
+```
+
+---
+
+## Response
+
+```json
+{
+  "url": "https://cdn.opentweet.io/uploaded-file.png"
+}
+```
+
+Pass the returned `url` value into:
+- `media_urls` — for a single post (up to 4 URLs)
+- `thread_media` — for a thread, aligned by index with `thread_tweets`
+
+<Tip>
+  Upload your media files before calling `POST /api/v1/posts`. The returned CDN URL is reusable — you can reference the same uploaded file in multiple posts or thread parts without uploading it again.
+</Tip>

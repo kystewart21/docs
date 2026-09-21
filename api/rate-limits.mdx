@@ -1,0 +1,101 @@
+---
+title: 'OpenTweet API Rate Limits and Daily Post Limits'
+sidebarTitle: 'Rate Limits'
+description: 'OpenTweet enforces per-minute request limits and daily post caps per plan. Rate limit headers are included in every 429 response so you can backoff correctly.'
+---
+
+OpenTweet enforces two independent types of limits: **API request rate limits**, which cap how many HTTP requests you can make per minute and per day, and **daily post limits**, which cap how many posts you can publish or schedule per calendar day. Both limits vary by plan.
+
+## API Request Rate Limits
+
+These limits apply to all API endpoints, regardless of what the request does.
+
+| Plan | Requests/minute | Requests/day |
+|------|-----------------|--------------|
+| Pro | 60 | 1,000 |
+| Advanced | 300 | 10,000 |
+
+<Note>
+  Agency plan customers share the Advanced request rate limits. Contact support if you need a custom limit for high-volume workflows.
+</Note>
+
+## Daily Post Limits
+
+Daily post limits control how many posts you can publish or schedule each day. Creating a **draft** (a post without a `scheduled_date` and without `publish_now: true`) does **not** count toward your daily limit.
+
+| Plan | Posts/day |
+|------|-----------|
+| Pro | 20 |
+| Advanced | 100 |
+| Agency | 300 |
+
+<Note>
+  Daily post limits reset at **midnight UTC**. Use `GET /api/v1/me` to check `posts_published_today` and `remaining_posts_today` before posting in high-volume automations.
+</Note>
+
+### Bulk Requests
+
+The `POST /api/v1/posts/batch-schedule` endpoint accepts a maximum of **50 posts per request** on all plans. Each post in the batch counts individually toward your daily post limit.
+
+## Rate Limit Headers
+
+Every `429` response includes the following headers so your code can back off correctly:
+
+```
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1720000000
+```
+
+| Header | Description |
+|--------|-------------|
+| `X-RateLimit-Limit` | The limit for the current window |
+| `X-RateLimit-Remaining` | Requests remaining in the current window |
+| `X-RateLimit-Reset` | Unix timestamp (UTC) when the window resets |
+
+## Checking Your Limits Before Posting
+
+Call `GET /api/v1/me` at the start of any batch job to confirm you have enough headroom before you start sending posts:
+
+```bash
+curl -H 'Authorization: Bearer ot_your_key' https://opentweet.io/api/v1/me
+```
+
+The `limits` object in the response tells you exactly where you stand:
+
+```json
+{
+  "limits": {
+    "can_post": true,
+    "posts_published_today": 3,
+    "remaining_posts_today": 17,
+    "daily_limit": 20
+  }
+}
+```
+
+## Handling 429 Errors
+
+When you hit a rate limit, read the `X-RateLimit-Reset` header and wait until that timestamp before retrying. The example below implements a simple retry loop with exponential backoff:
+
+```python
+import time, requests
+
+def post_with_retry(text, max_retries=3):
+    for attempt in range(max_retries):
+        resp = requests.post(
+            'https://opentweet.io/api/v1/posts',
+            headers={'Authorization': f'Bearer {API_KEY}'},
+            json={'text': text, 'publish_now': True}
+        )
+        if resp.status_code == 429:
+            retry_after = int(resp.headers.get('X-RateLimit-Reset', 60))
+            time.sleep(retry_after)
+            continue
+        resp.raise_for_status()
+        return resp.json()
+```
+
+<Tip>
+  For batch workflows, spread requests evenly over time rather than bursting at the start of a window. If you're scheduling 50 posts, use `POST /api/v1/posts/batch-schedule` in a single request instead of 50 individual calls — it consumes only one request against your rate limit.
+</Tip>

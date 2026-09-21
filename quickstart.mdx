@@ -1,204 +1,119 @@
 ---
-title: "Quickstart: Connect Your AI Client to College Scorecard"
-sidebarTitle: "Quickstart"
-description: "Connect an MCP-compatible AI client to the College Scorecard MCP server and run your first college data query — no API keys or accounts needed."
+title: 'Quickstart: Post to X in 3 Minutes'
+sidebarTitle: 'Quickstart'
+description: 'Get your OpenTweet API key, connect your X account, and publish your first post via REST API, MCP server, or CLI in under three minutes.'
 ---
 
-This guide walks you through connecting an MCP-compatible AI client to the College Scorecard MCP server and making your first live tool call against the U.S. Department of Education's College Scorecard dataset. The entire setup takes less than five minutes, and you won't need to create any accounts or configure any API keys.
-
-<Note>
-  No API key setup is required on the client side. The College Scorecard MCP server handles all authentication with the upstream data source automatically. Simply point your MCP client at the endpoint and start querying.
-</Note>
+This guide walks you through getting an API key, connecting your X account, and sending your first post — all in under three minutes. Pick the integration path that fits your workflow: REST API, MCP server for AI agents, or the CLI.
 
 <Steps>
 
-  <Step title="Choose an MCP-Compatible AI Client">
-    The College Scorecard MCP server speaks the [Model Context Protocol](https://modelcontextprotocol.io), an open standard that lets AI assistants discover and invoke external tools. Any MCP-compatible client can connect to it.
+<Step title="Get an API Key">
 
-    Popular options include:
+Sign in at [https://opentweet.io/auth/login](https://opentweet.io/auth/login) to start your free 7-day trial (no credit card required). Once you're in the dashboard, navigate to the **Developer** section and click **New API Key**.
 
-    - **[Claude Desktop](https://claude.ai/download)** — Anthropic's desktop app with built-in MCP support. Ideal for interactive college research.
-    - **[Cursor](https://cursor.sh)** — An AI-powered code editor that supports MCP tool calls, useful for developers building college data applications.
-    - **Any MCP client** — Any application that implements the MCP client specification can connect to the endpoint.
+Your key is displayed **only once** at creation time — copy it immediately and store it somewhere safe (a password manager or secrets vault works well).
 
-    Choose the client that best fits your workflow and proceed to the next step.
-  </Step>
+<Warning>
+Never put your `ot_` key in client-side code, a public repository, or anywhere else that could be read by a third party. Anyone who holds your key can post to your connected X account.
+</Warning>
 
-  <Step title="Configure the MCP Endpoint">
-    Point your MCP client at the College Scorecard MCP server endpoint:
+</Step>
 
-    ```
-    https://your-service.example.com/mcp
-    ```
+<Step title="Connect Your X Account">
 
-    The exact configuration format depends on your client.
+From the dashboard, click **Connect X Account** and complete the authorization flow. OpenTweet handles all X API credentials on your behalf — you do not need an X developer account or an API key from X.
 
-    <Tabs>
-      <Tab title="Claude Desktop">
-        Open or create the Claude Desktop configuration file at:
+The entire authorization flow takes under two minutes.
 
-        - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-        - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+</Step>
 
-        Add the College Scorecard MCP server under the `mcpServers` key:
+<Step title="Post to X">
 
-        ```json claude_desktop_config.json
-        {
-          "mcpServers": {
-            "college-scorecard": {
-              "url": "https://your-service.example.com/mcp",
-              "transport": "http"
-            }
-          }
-        }
-        ```
+Choose how you want to publish — via the REST API, an MCP-compatible AI agent, or the CLI:
 
-        Save the file and restart Claude Desktop. The College Scorecard tools will appear automatically in Claude's tool list.
-      </Tab>
-      <Tab title="Generic MCP Client">
-        For any MCP-compatible client, supply the following connection configuration:
+<Tabs>
 
-        ```json mcp-config.json
-        {
-          "servers": [
-            {
-              "name": "college-scorecard",
-              "transport": {
-                "type": "http",
-                "url": "https://your-service.example.com/mcp"
-              }
-            }
-          ]
-        }
-        ```
+<Tab title="REST API">
 
-        Refer to your client's documentation for exactly where to place this configuration. Most clients accept a JSON config file or an equivalent settings UI.
-      </Tab>
-      <Tab title="Cursor">
-        Open Cursor's settings and navigate to **Features → MCP Servers**. Add a new server entry with the following values:
+Use `curl` (or any HTTP client) to publish immediately or schedule a post for later:
 
-        ```json
-        {
-          "name": "college-scorecard",
-          "url": "https://your-service.example.com/mcp",
-          "transport": "http"
-        }
-        ```
+```bash
+# Publish immediately
+curl -X POST https://opentweet.io/api/v1/posts \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "Hello from my code.", "publish_now": true}'
 
-        Save your settings. Cursor will discover and register the College Scorecard tools immediately.
-      </Tab>
-    </Tabs>
-  </Step>
+# Schedule for later (ISO 8601 date)
+curl -X POST https://opentweet.io/api/v1/posts \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "Launch day.", "scheduled_date": "2026-07-10T09:00:00Z"}'
+```
 
-  <Step title="Verify the Connection">
-    Once your client is configured, verify that it can reach the MCP server and discover the available tools.
+A successful response looks like this:
 
-    In your AI client, send a prompt like:
+```json
+{ "success": true, "posts": [{ "id": "...", "status": "scheduled" }] }
+```
 
-    > *"What tools do you have available for college data?"*
+</Tab>
 
-    A successful connection returns a list of all four College Scorecard MCP tools:
+<Tab title="MCP Server (AI Agents)">
 
-    ```
-    Available tools:
-    - search_schools: Search for schools by name, location, and other criteria
-    - get_school: Retrieve detailed data for a specific school by ID
-    - compare_schools: Compare multiple schools side by side
-    - find_programs: Find schools offering specific academic programs by CIP code
-    ```
+Paste the following config block into your MCP client — Claude Desktop, Cursor, Windsurf, ChatGPT, or any client that supports the MCP protocol. Replace `ot_your_key` with your actual API key.
 
-    <Tip>
-      If the tools don't appear, double-check that the `url` in your config exactly matches `https://your-service.example.com/mcp` and that your client was fully restarted after saving the config file.
-    </Tip>
-  </Step>
+```json claude_desktop_config.json
+{
+  "mcpServers": {
+    "opentweet": {
+      "type": "streamable-http",
+      "url": "https://mcp.opentweet.io/mcp",
+      "headers": { "Authorization": "Bearer ot_your_key" }
+    }
+  }
+}
+```
 
-  <Step title="Make Your First Tool Call">
-    With the connection verified, try a real college data query. Ask your AI assistant:
+Restart the client after saving the config. Your agent now has access to **43 tools** for posting, scheduling, analytics, and more. Try prompting it:
 
-    > *"Search for schools named MIT in Massachusetts."*
+> "Post a tweet that says hello from MCP."
 
-    The assistant translates your natural language prompt into a `search_schools` tool call and sends the following JSON-RPC request to the MCP server:
+</Tab>
 
-    <CodeGroup>
-      ```json Request
-      {
-        "jsonrpc": "2.0",
-        "method": "tools/call",
-        "params": {
-          "name": "search_schools",
-          "arguments": {
-            "query": "MIT",
-            "filters": {
-              "state": "MA"
-            }
-          }
-        },
-        "id": 1
-      }
-      ```
+<Tab title="CLI">
 
-      ```json Response
-      {
-        "jsonrpc": "2.0",
-        "result": {
-          "schools": [
-            {
-              "id": 166683,
-              "name": "Massachusetts Institute of Technology",
-              "city": "Cambridge",
-              "state": "MA",
-              "ownership": "Private nonprofit",
-              "student_size": 11574,
-              "admission_rate": 0.04,
-              "median_earnings_10yr": 91700,
-              "avg_net_price": 21917
-            }
-          ],
-          "total": 1,
-          "page": 0,
-          "per_page": 10
-        },
-        "id": 1
-      }
-      ```
-    </CodeGroup>
+Install the OpenTweet CLI globally, authenticate with your `ot_` key, then post or schedule in a single command:
 
-    The assistant then interprets this response and replies in natural language — for example:
+```bash
+npm install -g @opentweet/cli
+opentweet auth              # paste your ot_ key when prompted
+opentweet tweet 'Shipped a new release.' --now
+opentweet tweet 'Big launch.' --schedule '2026-07-10 09:00'
+```
 
-    > *"Massachusetts Institute of Technology (MIT) is a private nonprofit university in Cambridge, MA. It has an acceptance rate of about 4%, an average net price of $21,917/year, and median earnings of $91,700 ten years after enrollment."*
+</Tab>
 
-    You're now fully connected and ready to explore College Scorecard data through your AI assistant.
-  </Step>
+</Tabs>
+
+</Step>
 
 </Steps>
 
-## What to Try Next
-
-Now that you're connected, here are some queries to explore the full power of the College Scorecard MCP:
+## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Compare Schools" icon="code-compare">
-    *"Compare MIT, Caltech, and Stanford on tuition, graduation rates, and median earnings."*
-
-    Uses the `compare_schools` tool to pull side-by-side data for multiple institutions.
+  <Card title="Authentication" icon="key" href="/authentication">
+    Learn how to manage API keys, rotate credentials, and handle common auth errors.
   </Card>
-  <Card title="Find Programs" icon="book-open">
-    *"Which schools in New York offer Computer Science programs?"*
-
-    Uses the `find_programs` tool with CIP code 11.0701 to find matching institutions.
+  <Card title="MCP Tools Reference" icon="robot" href="/mcp/tools">
+    Browse all 43 MCP tools available to AI agents, with parameters and example prompts.
   </Card>
-  <Card title="Get School Details" icon="school">
-    *"Give me full details on UC Berkeley."*
-
-    Uses the `get_school` tool to return the complete College Scorecard profile for a single institution.
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Full REST API reference with request schemas, response shapes, and status codes.
   </Card>
-  <Card title="Filter by Cost" icon="dollar-sign">
-    *"Find public universities in the Midwest with in-state tuition under $15,000."*
-
-    Uses `search_schools` with cost and ownership filters to narrow results.
+  <Card title="Features" icon="stars" href="/features">
+    Explore the Visual Calendar, AI Studio, Connectors, Evergreen Queue, and more.
   </Card>
 </CardGroup>
-
-<Info>
-  All data returned by the College Scorecard MCP comes directly from the U.S. Department of Education's College Scorecard database. Data is updated annually following the Department's release schedule.
-</Info>

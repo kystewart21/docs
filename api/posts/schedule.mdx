@@ -1,0 +1,66 @@
+---
+title: 'POST /api/v1/posts/:id/schedule — Schedule a Post'
+sidebarTitle: 'Schedule'
+description: 'Set or update the scheduled publish time for an existing draft or scheduled post. Pass an ISO 8601 datetime in the request body. Requires an active subscription.'
+---
+
+Use this endpoint to assign or update a publish time for any existing draft or scheduled post. OpenTweet will queue the post and publish it to X automatically at the specified time. This action counts toward your plan's daily post limit.
+
+## Endpoint
+
+```
+POST https://opentweet.io/api/v1/posts/:id/schedule
+```
+
+Replace `:id` with the post ID you want to schedule.
+
+---
+
+## Request Body
+
+Send a JSON object with a single field:
+
+```json
+{
+  "scheduled_date": "2026-07-10T09:00:00Z"
+}
+```
+
+<ParamField body="scheduled_date" type="string" required>
+  The target publish time in ISO 8601 format. The datetime must be in the future. Example: `"2026-07-10T09:00:00Z"`.
+</ParamField>
+
+---
+
+## Example
+
+```bash
+curl -X POST https://opentweet.io/api/v1/posts/65f1a2b3.../schedule \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{"scheduled_date": "2026-07-10T09:00:00Z"}'
+```
+
+---
+
+## Response
+
+```json
+{
+  "success": true,
+  "id": "65f1a2b3...",
+  "text": "Just shipped a new feature!",
+  "scheduled_date": "2026-07-10T09:00:00Z",
+  "message": "Post scheduled successfully"
+}
+```
+
+---
+
+## Errors
+
+| Status | Cause |
+|--------|-------|
+| `400 Bad Request` | The post has already been published to X. |
+| `400 Bad Request` | The `scheduled_date` is in the past. |
+| `403 Forbidden` | Your workspace does not have an active OpenTweet subscription. |

@@ -1,0 +1,130 @@
+---
+title: "Connect the OpenTweet MCP Server to Your AI Agent"
+sidebarTitle: "MCP Setup"
+description: "Configure the OpenTweet MCP server in Claude, Cursor, Windsurf, ChatGPT, or any MCP client. Hosted endpoint — nothing to install, paste one config block and restart."
+---
+
+The OpenTweet MCP server is hosted at `https://mcp.opentweet.io/mcp`. Add it to any MCP-compatible AI client to unlock 43 tools for posting, scheduling, analytics, evergreen recycling, and more — no local installation required.
+
+## Choose Your Run Mode
+
+You can connect to OpenTweet via MCP in two ways: the **hosted endpoint** (recommended) requires no installation and is always up to date, while the **local npm package** runs the server on your own machine using Node 18+.
+
+<Tabs>
+  <Tab title="Hosted (recommended)">
+    ```json
+    {
+      "mcpServers": {
+        "opentweet": {
+          "type": "streamable-http",
+          "url": "https://mcp.opentweet.io/mcp",
+          "headers": { "Authorization": "Bearer ot_your_key" }
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Local npm (Node 18+)">
+    ```json
+    {
+      "mcpServers": {
+        "opentweet": {
+          "command": "npx",
+          "args": ["-y", "@opentweet/mcp-server"],
+          "env": { "OPENTWEET_API_KEY": "ot_your_key" }
+        }
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Per-Client Setup
+
+### Claude Desktop and Claude Code
+
+Open your `claude_desktop_config.json` file and add the `opentweet` block under `mcpServers`:
+
+```json claude_desktop_config.json
+{
+  "mcpServers": {
+    "opentweet": {
+      "type": "streamable-http",
+      "url": "https://mcp.opentweet.io/mcp",
+      "headers": { "Authorization": "Bearer ot_your_key" }
+    }
+  }
+}
+```
+
+Restart Claude Desktop to apply the change. In Claude Code, run `claude mcp add` instead and follow the prompts.
+
+### Cursor
+
+Add the config to `~/.cursor/mcp.json` for a global installation, or `.cursor/mcp.json` inside your project folder for a project-scoped setup:
+
+```json .cursor/mcp.json
+{
+  "mcpServers": {
+    "opentweet": {
+      "url": "https://mcp.opentweet.io/mcp",
+      "headers": { "Authorization": "Bearer ot_your_key" }
+    }
+  }
+}
+```
+
+Reload the window after saving (`Cmd/Ctrl+Shift+P` → **Developer: Reload Window**).
+
+### Windsurf
+
+Add the config to `~/.codeium/windsurf/mcp_config.json`:
+
+```json mcp_config.json
+{
+  "mcpServers": {
+    "opentweet": {
+      "serverUrl": "https://mcp.opentweet.io/mcp",
+      "headers": { "Authorization": "Bearer ot_your_key" }
+    }
+  }
+}
+```
+
+Open Cascade and click **Refresh Servers** after saving the file.
+
+### ChatGPT and Other Clients
+
+See the dedicated [ChatGPT setup guide](/mcp/chatgpt) for step-by-step instructions, including how to target a specific X account from your workspace.
+
+## Verify the Connection
+
+After editing your config, follow these steps to confirm everything is working:
+
+1. **Restart or reload your client** — quit fully and reopen, or use the client's reload command.
+2. **Open the MCP or tools panel** — confirm `opentweet` appears as a connected server with 43 tools listed.
+3. **Run a live check** — ask your agent: *"Call opentweet_list_tweets"* and confirm it returns your post queue.
+
+<Tip>
+  `opentweet_list_tweets` is a safe, read-only check. It confirms your API key and connection are working without posting anything to X.
+</Tip>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="401 or auth errors">
+    Your API key must start with `ot_` and be sent as an `Authorization: Bearer ot_your_key` header. Verify the key is valid by calling `GET https://opentweet.io/api/v1/me` — a 200 response confirms the key is active.
+  </Accordion>
+  <Accordion title="Wrong URL">
+    The MCP endpoint is `https://mcp.opentweet.io/mcp`. The domain `api.opentweet.io` does not resolve — make sure you're using the correct URL in your config.
+  </Accordion>
+  <Accordion title="Local server won't start">
+    Confirm Node 18 or later is installed by running `node --version`. Then test the package directly with `npx -y @opentweet/mcp-server` in your terminal to see any startup errors.
+  </Accordion>
+  <Accordion title="Tools missing after config change">
+    Fully quit and reopen your client — some clients cache MCP config and require a hard restart rather than a window reload for changes to take effect.
+  </Accordion>
+  <Accordion title="No posting access">
+    Scheduling and publishing require an active OpenTweet subscription. Check the `subscription.has_access` field in the `/me` API response to confirm your plan is active.
+  </Accordion>
+</AccordionGroup>

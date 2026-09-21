@@ -1,0 +1,124 @@
+---
+title: 'OpenTweet API Error Codes and Troubleshooting'
+sidebarTitle: 'Errors'
+description: 'HTTP status codes, error response shape, and fixes for every OpenTweet API error — from invalid keys and subscription failures to X API errors and validation issues.'
+---
+
+When a request fails, OpenTweet returns a JSON body with a human-readable `error` field and, for validation failures, an optional `details` array listing each specific problem. Fix the underlying issue and retry — the errors below are all deterministic and won't resolve on their own.
+
+## Error Response Shape
+
+Every error response follows this structure:
+
+```json
+{
+  "error": "Human-readable error message",
+  "details": ["Array of specific validation errors (optional)"],
+  "remaining": 0
+}
+```
+
+- `error` — always present; describes what went wrong.
+- `details` — present on `400` validation errors; lists each invalid field or constraint.
+- `remaining` — present on `429` responses only; shows how many requests or posts remain in the current window.
+
+## HTTP Status Codes
+
+| Code | Meaning | Common Cause |
+|------|---------|--------------|
+| `200` | Success | — |
+| `201` | Created | New post or article created |
+| `400` | Bad Request | Validation error, invalid date, post already published |
+| `401` | Unauthorized | Missing or invalid API key |
+| `403` | Forbidden | No active subscription or plan restriction |
+| `404` | Not Found | Post or article ID doesn't exist |
+| `429` | Too Many Requests | Rate limit or daily post limit exceeded |
+| `500` | Server Error | OpenTweet-side issue |
+| `502` | X/Twitter API Error | X rejected the post or article |
+
+## Common Errors and Fixes
+
+<AccordionGroup>
+
+  <Accordion title="401 Unauthorized">
+    **Cause:** The `Authorization` header is missing, formatted incorrectly, or the key has been deleted.
+
+    **Fix:** Make sure the header is formatted exactly as shown below, and confirm the key starts with `ot_`:
+
+    ```bash
+    curl -H 'Authorization: Bearer ot_your_key' https://opentweet.io/api/v1/me
+    ```
+
+    If this call returns `"authenticated": true`, your key is valid. If it returns `401`, the key is invalid or has been revoked — generate a new one in **Dashboard → Developer → New API Key**.
+  </Accordion>
+
+  <Accordion title="403 Forbidden">
+    **Cause:** Your subscription has expired, your trial has ended, or you are calling an endpoint that requires a higher plan (for example, `/api/v1/analytics/tweets` on a Pro plan).
+
+    **Fix:** Call `GET /api/v1/me` and inspect the `subscription` object:
+
+    ```json
+    {
+      "subscription": {
+        "has_access": false,
+        "status": "past_due"
+      }
+    }
+    ```
+
+    If `has_access` is `false`, subscribe or update your billing at [opentweet.io/pricing](https://opentweet.io/pricing). If your subscription is active but you're still getting `403`, you may be calling an endpoint that requires a higher plan — check the [API Overview](/api/overview) for plan requirements.
+  </Accordion>
+
+  <Accordion title="400 Bad Request — Post Already Published">
+    **Cause:** You sent a `PUT` request or a schedule/reschedule action targeting a post that has already been published to X.
+
+    **Fix:** Only **drafts** and **scheduled** (not-yet-published) posts can be updated or rescheduled. Check the post's `status` field with `GET /api/v1/posts/:id` before attempting an update. If you need to correct a published post, delete it from X directly and create a new post via the API.
+  </Accordion>
+
+  <Accordion title="400 Bad Request — Date in the Past">
+    **Cause:** The `scheduled_date` value you provided is a timestamp that has already passed.
+
+    **Fix:** All `scheduled_date` values must be a future timestamp in **ISO 8601** format:
+
+    ```json
+    {
+      "text": "Scheduled post",
+      "scheduled_date": "2026-09-01T14:00:00Z"
+    }
+    ```
+
+    Use UTC timestamps to avoid timezone ambiguity. If you want to publish immediately instead of scheduling, omit `scheduled_date` and set `"publish_now": true`.
+  </Accordion>
+
+  <Accordion title="429 Too Many Requests">
+    **Cause:** You have exceeded either the per-minute request rate limit or the daily post limit for your plan.
+
+    **Fix:** Read the `X-RateLimit-Reset` header in the response — it contains a Unix timestamp indicating when your current window resets. Wait until that time before retrying.
+
+    ```
+    X-RateLimit-Limit: 60
+    X-RateLimit-Remaining: 0
+    X-RateLimit-Reset: 1720000000
+    ```
+
+    To avoid hitting daily post limits, check `remaining_posts_today` in `GET /api/v1/me` before submitting large batches. See the [Rate Limits reference](/api/rate-limits) for per-plan caps and a retry code example.
+  </Accordion>
+
+  <Accordion title="502 X/Twitter API Error">
+    **Cause:** OpenTweet successfully processed your request, but X rejected the post or article. Common reasons include a suspended X account, a content policy violation, a rate limit on X's side, or an X account not eligible to publish Articles.
+
+    **Fix:** Check the `error` field in the response body — it will include the rejection reason returned by X. Your post **is saved** in OpenTweet with a `failed` status, so you don't need to recreate it. Once you've resolved the underlying issue, retry publishing with:
+
+    ```bash
+    curl -X POST https://opentweet.io/api/v1/posts/:id/publish \
+      -H 'Authorization: Bearer ot_your_key'
+    ```
+
+    If X continues to reject the post, review [X's developer policy](https://developer.x.com/en/developer-terms/agreement-and-policy) or contact X support directly.
+  </Accordion>
+
+</AccordionGroup>
+
+## Still Stuck?
+
+If you receive a `500` error or an error that doesn't match any of the cases above, the issue is on OpenTweet's side. Check the [OpenTweet status page](https://status.opentweet.io) for any active incidents, or contact support with the full request and response so the team can investigate.

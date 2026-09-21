@@ -1,0 +1,68 @@
+---
+title: 'Generate and Edit Posts in the OpenTweet AI Studio'
+sidebarTitle: 'AI Studio'
+description: 'OpenTweet AI Studio generates tweet variations across 7 AI models, learns your voice from past posts, and generates images and video — all before anything publishes.'
+---
+
+The AI Studio is where you write, generate, and refine posts before they hit the calendar. Choose from seven AI models across Anthropic, OpenAI, Google, and xAI; let voice learning mirror your tone automatically; and generate images or short video to attach — all inside a single editor, with nothing publishing until you approve it.
+
+## Generating Posts in the AI Studio
+
+<Steps>
+  <Step title="Open the AI Studio">
+    Go to **Dashboard → AI Studio**, or open the composer and click **AI Generate**.
+  </Step>
+  <Step title="Set your topic and tone">
+    Enter a topic, choose a tone (casual, professional, punchy, etc.), and select one of the seven available AI models.
+  </Step>
+  <Step title="Review the variations">
+    The Studio generates multiple tweet variations at once. Read through them and pick the one that fits best, or mix and match lines between variations.
+  </Step>
+  <Step title="Edit, approve, and schedule">
+    Make any final edits in the inline editor, then schedule the post to the calendar or publish immediately. Nothing leaves the Studio until you explicitly approve it.
+  </Step>
+</Steps>
+
+## Choosing an AI Model
+
+The Studio gives you access to seven models from four providers. Different models suit different content styles — some are sharper for technical writing, others produce more natural conversational copy. Switch models freely between generations; your voice learning data carries over to each one.
+
+## AI Generations per Plan
+
+| Plan | Generations per day |
+|------|-------------------|
+| Pro | 10 |
+| Advanced | 50 |
+| Agency | 150 |
+
+## Voice Learning
+
+After you publish 10 or more posts, OpenTweet enables Voice Learning automatically. The model analyses your publishing history — sentence length, vocabulary, punctuation habits, tone — and mirrors that style in every generation. You don't configure anything; it updates continuously as you publish more.
+
+Switch AI models at any time. Voice learning adapts independently for each model so the output stays consistent no matter which one you pick.
+
+## Generating Images and Video
+
+The AI Studio isn't limited to text. From the composer or Studio editor:
+
+- **Generate an image** — Enter a prompt and the Studio produces a ready-to-attach image for your post.
+- **Generate a short video clip** — Describe the scene or motion you want and the Studio produces a short video you can attach directly.
+
+Both options are available in the Studio and via the MCP tools described below.
+
+## AI Tools in the MCP and REST API
+
+Your AI agent has direct access to the Studio's capabilities through the MCP:
+
+| MCP Tool | What it does |
+|----------|-------------|
+| `opentweet_repurpose_tweet` | Rewrite an existing post into new variations (different angle, tone, or format) |
+| `opentweet_generate_image` | Generate an image from a text prompt for use in a post |
+| `opentweet_generate_video` | Generate a short video clip from a text prompt |
+| `opentweet_search_inspiration` | Search for reference tweets on a topic to inform drafting |
+| `opentweet_create_tweet` | Create and schedule a tweet directly from the agent |
+| `opentweet_get_content_gaps` | Identify topics you haven't posted about recently |
+
+<Tip>
+  Ask your AI agent to call `opentweet_get_content_gaps` to surface topics you haven't covered recently. Then have it generate a post on one of those topics using `opentweet_create_tweet` — you'll fill gaps in your content mix without having to audit your own timeline manually.
+</Tip>

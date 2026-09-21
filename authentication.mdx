@@ -1,105 +1,101 @@
 ---
-title: "Authentication: How College Scorecard MCP Manages API Keys"
-sidebarTitle: "Authentication"
-description: "The College Scorecard MCP manages all API key authentication server-side — clients connect over HTTPS with no credentials or sign-up required."
+title: 'Authenticate with the OpenTweet API'
+sidebarTitle: 'Authentication'
+description: 'OpenTweet uses Bearer token authentication. Create an ot_ API key in the dashboard, send it in every request header, and rotate or revoke it anytime.'
 ---
 
-The College Scorecard MCP is designed so that you, as a client, never have to think about authentication. The MCP server holds a secure API key for the upstream College Scorecard API and injects it into every outbound request automatically. You connect to the MCP endpoint over standard HTTPS and start querying — no tokens, no headers, no key rotation.
+Every request to OpenTweet — whether through the REST API or the hosted MCP server — must include an `ot_` API key. OpenTweet uses Bearer token authentication: include your key in a request header, and the platform identifies your account, checks your subscription, and enforces your plan's daily limits automatically.
 
-## How It Works
+## Sending Your Key
 
-The [U.S. Department of Education College Scorecard API](https://api.data.gov/ed/collegescorecard/v1/) requires an `api_key` query parameter on every request. Rather than exposing this requirement to clients, the College Scorecard MCP server manages the key entirely on the server side:
+You have two equivalent ways to pass your key on each request. Use whichever header your HTTP client or framework makes easier:
 
-1. **The API key is stored as a server-side environment secret** (`COLLEGE_SCORECARD_API_KEY`). It is never transmitted to clients, never logged in responses, and never included in any client-facing payload.
-2. **Every outbound request** from the MCP server to the College Scorecard API automatically includes the `api_key` parameter — appended server-side before the request leaves the network perimeter.
-3. **Your MCP client** communicates only with `https://your-service.example.com/mcp` using standard JSON-RPC over HTTPS. No authentication headers are required on your end.
+```bash
+# Option 1 — Authorization header (preferred)
+curl -H 'Authorization: Bearer ot_your_key' https://opentweet.io/api/v1/me
 
-## What You Need (and Don't Need)
+# Option 2 — X-API-Key header
+curl -H 'X-API-Key: ot_your_key' https://opentweet.io/api/v1/me
+```
 
-| | Required? | Details |
-|---|---|---|
-| **MCP endpoint URL** | ✅ Yes | `https://your-service.example.com/mcp` |
-| **MCP-compatible client** | ✅ Yes | Claude Desktop, Cursor, or any MCP client |
-| **HTTPS** | ✅ Yes | All traffic to the endpoint is encrypted in transit |
-| **College Scorecard API key** | ❌ No | Managed server-side; not required by clients |
-| **Authorization headers** | ❌ No | The MCP endpoint is publicly accessible — no `Authorization` header needed |
-| **OAuth tokens or JWTs** | ❌ No | No token-based auth is required to call the MCP endpoint |
-| **Account or login** | ❌ No | No sign-up required to use the hosted MCP server |
+Both headers are accepted on every endpoint. The `Authorization: Bearer` form is preferred because it aligns with standard OAuth 2.0 conventions and is recognized by most API clients and code generators automatically.
 
-<Note>
-  The MCP endpoint at `https://your-service.example.com/mcp` is publicly accessible over HTTPS. All communication between your client and the MCP server is encrypted in transit via TLS.
-</Note>
+## Verify Your Key
 
-## From the Client's Perspective
+Before integrating further, confirm your key is valid and your subscription is active by calling `GET /api/v1/me`:
 
-When your AI assistant calls a tool — for example, `search_schools` — here is what the request from your client looks like:
+```bash
+curl -H 'Authorization: Bearer ot_your_key' https://opentweet.io/api/v1/me
+```
+
+A successful response looks like this:
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "search_schools",
-    "arguments": {
-      "query": "Stanford University",
-      "filters": { "state": "CA" }
-    }
-  },
-  "id": 1
+  "authenticated": true,
+  "subscription": { "has_access": true, "status": "active" },
+  "limits": { "can_post": true, "remaining_posts_today": 17, "daily_limit": 20 }
 }
 ```
 
-No API key. No authorization header. No credentials of any kind. The MCP server receives this request, enriches the corresponding College Scorecard API call with the secret key, and returns structured data to your client.
+| Field | Description |
+|-------|-------------|
+| `authenticated` | `true` if the key is valid and recognized. |
+| `subscription.has_access` | `true` if your plan is active (trial or paid). |
+| `subscription.status` | `"active"`, `"trialing"`, `"canceled"`, or `"past_due"`. |
+| `limits.can_post` | `true` if you have remaining posts in today's allowance. |
+| `limits.remaining_posts_today` | Number of posts you can still publish before midnight UTC. |
+| `limits.daily_limit` | Your plan's maximum posts per day. |
 
-## Self-Hosting the MCP Server
+## Creating and Managing Keys
 
-If you are running your own instance of the College Scorecard MCP server rather than using the hosted endpoint, you will need to supply your own College Scorecard API key.
+Create and revoke API keys from the **Developer** section of your dashboard:
 
-<Steps>
-  <Step title="Obtain a College Scorecard API Key">
-    Register for a free API key at [https://api.data.gov/signup](https://api.data.gov/signup). The key is issued immediately after you confirm your email address.
-  </Step>
-  <Step title="Set the Environment Variable">
-    Export your key as the `COLLEGE_SCORECARD_API_KEY` environment variable before starting the MCP server:
+1. Open [https://opentweet.io](https://opentweet.io) and sign in.
+2. Navigate to **Dashboard → Developer → New API Key**.
+3. Give the key a descriptive name (e.g., `ci-pipeline` or `my-agent`).
+4. Copy the key immediately — it is displayed **only once** at creation time and cannot be retrieved later.
 
-    ```bash
-    export COLLEGE_SCORECARD_API_KEY="your_api_key_here"
-    ```
+Your plan determines how many keys you can hold simultaneously: 3 on Pro, 10 on Advanced, and 25 on Agency.
 
-    Or add it to your deployment environment's secret store (e.g., a `.env` file, AWS Secrets Manager, Fly.io secrets, etc.):
+## Rotating Keys
 
-    ```bash .env
-    COLLEGE_SCORECARD_API_KEY=your_api_key_here
-    ```
-  </Step>
-  <Step title="Start the MCP Server">
-    The server reads `COLLEGE_SCORECARD_API_KEY` at startup and injects it into all requests to `https://api.data.gov/ed/collegescorecard/v1/`. No additional configuration is needed.
-  </Step>
-</Steps>
+Rotate a key whenever you suspect it has been exposed or as part of a regular credential hygiene cycle:
 
-<Warning>
-  Never commit your `COLLEGE_SCORECARD_API_KEY` to source control or expose it in client-side code. If your key is compromised, rotate it immediately at [https://api.data.gov](https://api.data.gov) and update the environment variable in your deployment.
-</Warning>
+1. Create a new key in the Developer section.
+2. Update every integration, environment variable, or config file that references the old key.
+3. Delete the old key from the dashboard once you've confirmed the new one works.
 
-## Security Model Summary
+There is no downtime during rotation — both keys are valid until you delete the old one.
 
-<Accordion title="Why is there no client-side authentication?">
-  The hosted College Scorecard MCP server is designed as a public data utility — all the data it serves comes from a freely accessible U.S. government dataset. Because the underlying College Scorecard API data is public, there is no private user data to protect at the MCP layer, and requiring client credentials would add friction without a meaningful security benefit.
+## Security Best Practices
 
-  If you need to add access controls to your own deployment (for example, to restrict which users can call the MCP tools), you can place an authentication proxy (such as an API gateway or reverse proxy with bearer token enforcement) in front of the MCP endpoint.
-</Accordion>
+<Note>
+Store your `ot_` key in an environment variable (e.g., `OPENTWEET_API_KEY`) and read it at runtime. Never hardcode it in source code, commit it to a repository, or expose it in client-side JavaScript. API keys must be kept server-side only — treat them with the same care as a password.
+</Note>
 
-<Accordion title="How is the server-side API key protected?">
-  The `COLLEGE_SCORECARD_API_KEY` is stored as an encrypted environment secret in the server's deployment environment. It is:
+## MCP Server Authentication
 
-  - **Never returned** in any MCP tool response
-  - **Never logged** in application-level logs
-  - **Never transmitted** to MCP clients
-  - **Injected at request time** as a query parameter on outbound calls to `https://api.data.gov/ed/collegescorecard/v1/`
+For the hosted MCP server at `https://mcp.opentweet.io/mcp`, pass your key in the `Authorization` header inside your MCP client config:
 
-  Only the MCP server process has access to the key at runtime.
-</Accordion>
+```json
+{
+  "mcpServers": {
+    "opentweet": {
+      "type": "streamable-http",
+      "url": "https://mcp.opentweet.io/mcp",
+      "headers": { "Authorization": "Bearer ot_your_key" }
+    }
+  }
+}
+```
 
-<Accordion title="Does the MCP endpoint support TLS/HTTPS only?">
-  Yes. The MCP endpoint at `https://your-service.example.com/mcp` enforces HTTPS. Plain HTTP connections are not accepted. All data exchanged between your client and the server is encrypted in transit using TLS 1.2 or higher.
-</Accordion>
+If you're running the local npm MCP server instead, set the `OPENTWEET_API_KEY` environment variable and the server will pick it up automatically — no header config needed.
+
+## Common Auth Errors
+
+| Status | Meaning | Fix |
+|--------|---------|-----|
+| `401` | Invalid or missing key | Confirm the key starts with `ot_`, is copied in full, and has not been deleted from the dashboard. |
+| `403` | No active subscription | Subscribe to a plan or re-activate your 7-day trial at [opentweet.io](https://opentweet.io). |
+| `429` | Daily post limit reached | Wait until midnight UTC when the counter resets, or upgrade to a plan with a higher daily limit. |
