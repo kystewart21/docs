@@ -1,0 +1,200 @@
+---
+title: 'X Articles API — Create, Schedule, and Publish'
+sidebarTitle: 'Articles'
+description: 'Create and publish long-form X Articles from markdown via the API. Schedule Articles on the same queue as your posts. Requires a paid plan and X Premium.'
+---
+
+X Articles let you publish long-form content directly from your OpenTweet workflow. Use the Articles API to create drafts from markdown, schedule them alongside your regular posts, and publish them to X programmatically. Articles share the same scheduling queue and API patterns as standard posts.
+
+## Requirements
+
+- **OpenTweet plan:** Pro, Advanced, or Agency. Articles are not available during the free trial.
+- **X account:** The connected X account must have any tier of X Premium to publish Articles.
+
+---
+
+## Endpoints
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `POST` | `/api/v1/articles` | Create a new Article |
+| `GET` | `/api/v1/articles` | List Articles |
+| `PUT` | `/api/v1/articles/:id` | Update an Article |
+| `POST` | `/api/v1/articles/:id/publish` | Publish an Article immediately |
+
+All endpoints require:
+```
+Authorization: Bearer ot_your_key
+```
+
+---
+
+## Create an Article
+
+```
+POST https://opentweet.io/api/v1/articles
+```
+
+Send the article content as markdown. Include `scheduled_date` to queue it or `"publish_now": true` to go live immediately.
+
+```json
+{
+  "title": "How we grew to $10k MRR",
+  "content_markdown": "# Intro\n\nIt started with **one tweet**...",
+  "cover_image_url": "https://example.com/cover.jpg",
+  "scheduled_date": "2026-07-10T14:00:00Z",
+  "publish_now": false,
+  "x_account_id": "65f1a2b3c4d5e6f7a8b9c0d1"
+}
+```
+
+<ParamField body="title" type="string" required>
+  The Article headline displayed on X.
+</ParamField>
+
+<ParamField body="content_markdown" type="string" required>
+  Full Article body in markdown. See [Markdown support](#markdown-support) for supported syntax.
+</ParamField>
+
+<ParamField body="cover_image_url" type="string">
+  URL of the cover image to display at the top of the Article.
+</ParamField>
+
+<ParamField body="scheduled_date" type="string">
+  ISO 8601 future datetime to schedule the Article. Mutually exclusive with `publish_now`.
+</ParamField>
+
+<ParamField body="publish_now" type="boolean">
+  Set to `true` to publish the Article to X immediately. Mutually exclusive with `scheduled_date`.
+</ParamField>
+
+<ParamField body="x_account_id" type="string">
+  Target a specific connected X account. Defaults to the workspace's primary account.
+</ParamField>
+
+---
+
+## List Articles
+
+```
+GET https://opentweet.io/api/v1/articles
+```
+
+Returns Articles in your workspace, optionally filtered by status or account.
+
+### Query parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `status` | string | Filter by Article status: `draft`, `scheduled`, or `published` |
+| `x_account_id` | string | Filter to Articles belonging to a specific connected X account |
+| `page` | number | Page number for pagination (default: `1`) |
+| `limit` | number | Results per page (default: `20`) |
+
+```bash
+curl -H 'Authorization: Bearer ot_your_key' \
+  'https://opentweet.io/api/v1/articles?status=scheduled&page=1&limit=20'
+```
+
+---
+
+## Update an Article
+
+```
+PUT https://opentweet.io/api/v1/articles/:id
+```
+
+All fields are optional — send only the fields you want to change. To remove a scheduled date without rescheduling, set `scheduled_date` explicitly to `null`.
+
+```json
+{
+  "title": "Updated headline",
+  "scheduled_date": null
+}
+```
+
+---
+
+## Publish an Article
+
+```
+POST https://opentweet.io/api/v1/articles/:id/publish
+```
+
+Immediately publishes a saved Article to X. Send no request body — the Article's existing content and account are used. Returns `502 Bad Gateway` if X rejects the Article (for example, if the X account is not eligible for Articles). The Article remains saved in OpenTweet regardless.
+
+```bash
+curl -X POST https://opentweet.io/api/v1/articles/ARTICLE_ID/publish \
+  -H 'Authorization: Bearer ot_your_key'
+```
+
+---
+
+## Examples
+
+<CodeGroup>
+
+```bash Create and schedule
+curl -X POST https://opentweet.io/api/v1/articles \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "title": "What 80,000 Posts Taught Us About Timing",
+    "content_markdown": "# Introduction\n\nWe analyzed every post this year...",
+    "scheduled_date": "2026-07-15T09:00:00Z"
+  }'
+```
+
+```bash Publish immediately
+curl -X POST https://opentweet.io/api/v1/articles/ARTICLE_ID/publish \
+  -H 'Authorization: Bearer ot_your_key'
+```
+
+```bash List scheduled articles
+curl -H 'Authorization: Bearer ot_your_key' \
+  'https://opentweet.io/api/v1/articles?status=scheduled'
+```
+
+</CodeGroup>
+
+---
+
+## Response
+
+```json
+{
+  "article": {
+    "id": "...",
+    "title": "What 80,000 Posts Taught Us About Timing",
+    "status": "scheduled",
+    "scheduled_date": "2026-07-15T09:00:00Z"
+  }
+}
+```
+
+---
+
+## Markdown Support
+
+OpenTweet translates the following markdown elements into native X Article formatting:
+
+| Element | Supported |
+|---------|-----------| 
+| Headings H1–H3 | ✅ |
+| **Bold** and *italic* | ✅ |
+| ~~Strikethrough~~ | ✅ |
+| [Links](https://example.com) | ✅ |
+| Ordered and unordered lists | ✅ |
+| Blockquotes | ✅ |
+| Images | ✅ Auto-uploaded to X |
+| Embedded X posts | ✅ Paste a status URL on its own line |
+| Code blocks | ⚠️ Rendered as plain text (no code formatting on X) |
+
+---
+
+## Errors
+
+| Status | Cause |
+|--------|-------|
+| `403 Forbidden` | Your current plan does not include Articles. Upgrade to Pro, Advanced, or Agency. |
+| `502 Bad Gateway` | X rejected the Article — returned with `"publish_failed"`. The most common cause is the X account not being eligible for Articles (X Premium required). The Article remains saved in OpenTweet. |

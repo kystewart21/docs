@@ -1,65 +1,62 @@
 ---
-title: "College Scorecard MCP: U.S. College Data for AI Agents"
+title: "OpenTweet Documentation"
 sidebarTitle: "Home"
-description: "Connect any MCP-compatible AI assistant to data on 6,500+ U.S. colleges. Search schools, compare costs, and explore programs — no API key needed."
+description: "OpenTweet is the posting layer for X. Give your AI agent 43 tools, post via REST from any language, or schedule from the calendar — one key, no X developer account."
 ---
 
-The College Scorecard MCP server bridges the U.S. Department of Education's College Scorecard dataset and any MCP-compatible AI assistant. With a single HTTPS endpoint, your AI agent gains structured tools for searching schools, retrieving detailed institutional data, comparing colleges side-by-side, and exploring academic programs — all without managing API keys or raw HTTP requests.
+OpenTweet connects AI agents, developers, and creators to X (Twitter) through a hosted MCP server, a REST API, and a CLI. You get one `ot_` API key from the dashboard, point any MCP client at `https://mcp.opentweet.io/mcp`, and your first post goes out in under three minutes — no X developer account, no OAuth plumbing, no per-post billing.
 
 <CardGroup cols={2}>
-  <Card title="Introduction" icon="house" href="/introduction">
-    Learn what the College Scorecard MCP server is and how it works
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Post to X in 3 minutes via REST, MCP, or the CLI.
   </Card>
-  <Card title="Quick Start" icon="rocket" href="/quickstart">
-    Connect your AI assistant to the MCP endpoint in minutes
-  </Card>
-  <Card title="MCP Tools" icon="wrench" href="/tools/overview">
-    Explore all four tools: search, get, compare, and find programs
+  <Card title="MCP Setup" icon="robot" href="/mcp/setup">
+    Connect Claude, Cursor, ChatGPT, or any MCP client to your X account.
   </Card>
   <Card title="API Reference" icon="code" href="/api/overview">
-    Full MCP endpoint specification and response schemas
+    Full REST API reference with request and response examples.
   </Card>
-  <Card title="Guides" icon="book-open" href="/guides/connecting-ai-agents">
-    Step-by-step walkthroughs for common use cases
-  </Card>
-</CardGroup>
-
-## What You Can Do
-
-The College Scorecard MCP exposes four tools your AI agent can call directly:
-
-<CardGroup cols={2}>
-  <Card title="search_schools" icon="magnifying-glass" href="/tools/search-schools">
-    Find institutions by name, location, type, or any scorecard attribute
-  </Card>
-  <Card title="get_school" icon="school" href="/tools/get-school">
-    Retrieve the full scorecard profile for a single institution
-  </Card>
-  <Card title="compare_schools" icon="chart-bar" href="/tools/compare-schools">
-    Compare two or more colleges across cost, outcomes, and programs
-  </Card>
-  <Card title="find_programs" icon="graduation-cap" href="/tools/find-programs">
-    Search academic programs and fields of study by keyword or CIP code
+  <Card title="MCP Tools" icon="wrench" href="/mcp/tools">
+    Browse all 43 tools your agent can call — posting, analytics, evergreen, DMs.
   </Card>
 </CardGroup>
 
 ## How It Works
 
 <Steps>
-  <Step title="Connect your AI assistant">
-    Point your MCP-compatible client (Claude, Cursor, or any MCP-enabled tool) to `https://your-service.example.com/mcp`.
+  <Step title="Create an API key">
+    Sign in at [opentweet.io/dashboard](https://opentweet.io/dashboard), go to the **Developer** section, and generate an `ot_` key. Connect your X account in the same step — no X developer account required.
   </Step>
-  <Step title="Discover available tools">
-    The server automatically advertises its tool list. Your assistant sees `search_schools`, `get_school`, `compare_schools`, and `find_programs`.
+  <Step title="Choose your integration">
+    Use the hosted MCP server for AI agents (Claude, Cursor, ChatGPT), the REST API for backend code, or the CLI for terminal and CI/CD pipelines. All three use the same key.
   </Step>
-  <Step title="Ask questions in natural language">
-    Your assistant translates user queries into tool calls — no manual API integration required.
+  <Step title="Post, schedule, or automate">
+    Publish immediately, schedule at a future date, or let your agent fill the queue. Every post lands on the same visual calendar — editable by you or your agent until it goes live.
   </Step>
-  <Step title="Get structured data back">
-    Each tool returns clean, structured JSON sourced directly from the official College Scorecard dataset.
+  <Step title="Review and analyze">
+    Open the calendar to review agent-created drafts before they ship. Use analytics to track impressions, engagement, and the best times to post.
   </Step>
 </Steps>
 
-<Note>
-  The College Scorecard MCP server manages all API authentication server-side. You do not need to obtain or configure a College Scorecard API key to use this service.
-</Note>
+## Explore by Use Case
+
+<CardGroup cols={3}>
+  <Card title="AI Agents" icon="brain" href="/mcp/setup">
+    Give Claude, Cursor, or ChatGPT a full X toolkit.
+  </Card>
+  <Card title="Developers" icon="terminal" href="/api/overview">
+    POST from any language or shell in seconds.
+  </Card>
+  <Card title="Cross-Posting" icon="share-nodes" href="/features/cross-posting">
+    One draft → X, Bluesky, and LinkedIn natively.
+  </Card>
+  <Card title="Scheduling" icon="calendar" href="/features/scheduling">
+    Visual calendar with best-time heatmaps.
+  </Card>
+  <Card title="Connectors" icon="plug" href="/features/connectors">
+    RSS, GitHub, Stripe, and more auto-post for you.
+  </Card>
+  <Card title="Evergreen Queue" icon="recycle" href="/features/evergreen-queue">
+    Recycle your best posts on a cooldown you set.
+  </Card>
+</CardGroup>

@@ -1,0 +1,108 @@
+---
+title: 'API Authentication: Bearer Tokens and Key Management'
+sidebarTitle: 'Authentication'
+description: 'Pass your ot_ API key as a Bearer token on every request. Create, rotate, and revoke keys from the OpenTweet dashboard without affecting your X accounts.'
+---
+
+Every request to the OpenTweet API must include an `ot_` API key. Keys are tied to your OpenTweet account — not your X account — so you can create, rotate, and revoke them at any time from the dashboard without affecting your connected X accounts.
+
+## Sending Your Key
+
+OpenTweet accepts your API key in two header formats. Both work on every endpoint; use whichever fits your stack.
+
+```bash
+# Option 1 — Authorization header (preferred)
+curl -H 'Authorization: Bearer ot_your_key' https://opentweet.io/api/v1/me
+
+# Option 2 — X-API-Key header
+curl -H 'X-API-Key: ot_your_key' https://opentweet.io/api/v1/me
+```
+
+All keys begin with the prefix `ot_`. If your key doesn't start with `ot_`, it was not issued by OpenTweet and will be rejected with a `401`.
+
+## Managing Keys in the Dashboard
+
+### Creating a Key
+
+1. Open the [OpenTweet dashboard](https://opentweet.io/dashboard) and navigate to **Developer → New API Key**.
+2. Give the key a name that identifies its integration (e.g. `zapier-prod` or `analytics-script`).
+3. Copy the key immediately — OpenTweet shows it **once** at creation time and never again.
+
+<Warning>
+  If you lose a key before saving it, delete it and create a new one. There is no way to retrieve the key value after you close the creation dialog.
+</Warning>
+
+### Rotating a Key
+
+Rotate a key whenever you suspect it has been exposed, or as part of a regular credential hygiene cycle:
+
+1. Create a new key in **Developer → New API Key**.
+2. Update your integration to use the new key.
+3. Verify the integration is working with the new key.
+4. Delete the old key from the dashboard.
+
+Zero-downtime rotation is safe because both keys are valid simultaneously until you delete the old one.
+
+### Revoking a Key
+
+Navigate to **Developer**, click the key you want to remove, and select **Delete**. Revocation takes effect immediately — any request using that key will receive a `401` response.
+
+## Key Limits by Plan
+
+| Plan | API Keys |
+|------|----------|
+| Pro | 3 |
+| Advanced | 10 |
+| Agency | 25 |
+
+Create one key per integration so you can revoke a single integration's access without rotating credentials everywhere else.
+
+## Verifying a Key
+
+Call `GET /api/v1/me` to confirm your key is valid and inspect your subscription status and daily posting limits:
+
+```bash
+curl -H 'Authorization: Bearer ot_your_key' https://opentweet.io/api/v1/me
+```
+
+A successful response looks like this:
+
+```json
+{
+  "authenticated": true,
+  "subscription": {
+    "has_access": true,
+    "status": "active",
+    "is_trialing": false,
+    "current_period_ends_at": "2026-08-01T00:00:00Z"
+  },
+  "limits": {
+    "can_post": true,
+    "posts_published_today": 3,
+    "remaining_posts_today": 17,
+    "daily_limit": 20
+  }
+}
+```
+
+Check `subscription.has_access` before posting — if it returns `false`, your subscription has lapsed and post requests will be rejected with `403`.
+
+## Authentication Error Codes
+
+| Code | Cause | Fix |
+|------|-------|-----|
+| `401` | Missing or invalid key | Check key starts with `ot_`, add `Authorization: Bearer` prefix |
+| `403` | No active subscription | Subscribe or start a trial at [opentweet.io](https://opentweet.io) |
+| `429` | Rate limit or daily post limit | Check `X-RateLimit-Remaining` header; wait or upgrade plan |
+
+See the [Errors reference](/api/errors) for the full list of status codes and their fixes.
+
+## Security Best Practices
+
+<Note>
+  Follow these practices to keep your API keys secure:
+
+  - **Use environment variables** — store keys in your environment rather than in code: `export OPENTWEET_API_KEY=ot_...`
+  - **Never hardcode keys** — do not embed key values in source files or configuration that gets committed to version control
+  - **One key per integration** — isolate each integration so you can revoke it independently without disrupting other consumers
+</Note>

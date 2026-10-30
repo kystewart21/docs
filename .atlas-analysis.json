@@ -1,11 +1,11 @@
 {
-  "projectType": "api-service",
-  "projectName": "College Scorecard MCP",
-  "projectDescription": "An MCP (Model Context Protocol) server that wraps the U.S. Department of Education's College Scorecard API, enabling AI assistants and agents to search schools, compare institutions, and explore programs using natural language.",
+  "projectType": "saas",
+  "projectName": "OpenTweet",
+  "projectDescription": "OpenTweet is the posting layer for X (Twitter), giving AI agents, developers, and creators a hosted MCP server, REST API, and CLI to schedule posts, publish threads, manage an evergreen queue, and read analytics — all with one API key and no X developer account.",
   "theme": "luma",
-  "primaryColor": "#d83933",
-  "lightColor": "#23639c",
-  "darkColor": null,
+  "primaryColor": "#ff511c",
+  "lightColor": "#111827",
+  "darkColor": "#747474",
   "navigation": {
     "tabs": [
       {
@@ -20,29 +20,31 @@
             ]
           },
           {
-            "group": "MCP Tools",
+            "group": "Connect Your Agent",
             "pages": [
-              "tools/overview",
-              "tools/search-schools",
-              "tools/get-school",
-              "tools/compare-schools",
-              "tools/find-programs"
+              "mcp/setup",
+              "mcp/tools",
+              "mcp/chatgpt"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/scheduling",
+              "features/threads",
+              "features/cross-posting",
+              "features/evergreen-queue",
+              "features/connectors",
+              "features/ai-studio"
             ]
           },
           {
             "group": "Guides",
             "pages": [
-              "guides/connecting-ai-agents",
-              "guides/school-comparison",
-              "guides/program-research"
-            ]
-          },
-          {
-            "group": "Reference",
-            "pages": [
-              "reference/data-fields",
-              "reference/filters-and-sorting",
-              "reference/faq"
+              "guides/post-from-agent",
+              "guides/bulk-scheduling",
+              "guides/x-articles",
+              "guides/dm-campaigns"
             ]
           }
         ]
@@ -51,18 +53,37 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "MCP Endpoint",
+            "group": "Overview",
             "pages": [
               "api/overview",
-              "api/tool-list",
-              "api/error-codes"
+              "api/authentication",
+              "api/rate-limits",
+              "api/errors"
             ]
           },
           {
-            "group": "College Scorecard Data",
+            "group": "Posts",
             "pages": [
-              "api/schools",
-              "api/programs"
+              "api/posts/create",
+              "api/posts/list",
+              "api/posts/schedule",
+              "api/posts/publish",
+              "api/posts/batch-schedule"
+            ]
+          },
+          {
+            "group": "Articles & Media",
+            "pages": [
+              "api/articles",
+              "api/upload"
+            ]
+          },
+          {
+            "group": "Analytics & Accounts",
+            "pages": [
+              "api/analytics",
+              "api/accounts",
+              "api/cross-posting"
             ]
           }
         ]
@@ -70,21 +91,63 @@
     ]
   },
   "keyFeatures": [
-    "MCP-native server exposing College Scorecard data to AI assistants and agents",
-    "search_schools tool for full-text and filtered school searches",
-    "get_school tool for retrieving detailed data on a single institution",
-    "compare_schools tool for side-by-side institutional comparisons",
-    "find_programs tool for discovering programs by field of study or CIP code",
-    "Server-side API key management — no credentials exposed to clients",
-    "Public HTTPS MCP endpoint ready for immediate integration",
-    "Backed by the U.S. Department of Education's official College Scorecard dataset"
+    "Hosted MCP server at https://mcp.opentweet.io/mcp with 43 tools — works with Claude, Cursor, Windsurf, ChatGPT, and any MCP client",
+    "REST API with Bearer token auth — POST to X from any language with no X developer account",
+    "CLI tool (@opentweet/cli) for terminal and CI/CD pipeline posting",
+    "Visual calendar with drag-and-drop scheduling and best-time heatmap",
+    "Thread scheduling up to 25 parts with per-tweet media",
+    "Cross-posting to X, Bluesky, and LinkedIn from a single draft",
+    "Evergreen queue that recycles best-performing posts on a configurable cooldown",
+    "Smart Connectors: RSS, GitHub, Stripe, SaaS, and custom API feeds",
+    "AI Studio with seven model choices for post generation and voice learning",
+    "X Articles: write in markdown, schedule alongside regular posts",
+    "DM Campaigns with human-in-the-loop approval and official API delivery",
+    "Analytics: impressions, engagement rate, growth, and best-time recommendations"
   ],
   "publicApiSurface": [
-    "POST /mcp — MCP protocol endpoint (tool calls, tool listing)",
-    "tool: search_schools(query, filters) — search institutions by name, location, or attributes",
-    "tool: get_school(id) — retrieve full scorecard data for a single school",
-    "tool: compare_schools(ids[]) — compare two or more institutions side-by-side",
-    "tool: find_programs(cip_code?, keyword?, school_id?) — discover academic programs and fields of study",
-    "GET /mcp — tool list discovery endpoint"
+    "GET /api/v1/me",
+    "GET /api/v1/accounts",
+    "GET /api/v1/cross-posting",
+    "GET /api/v1/posts",
+    "POST /api/v1/posts",
+    "GET /api/v1/posts/:id",
+    "PUT /api/v1/posts/:id",
+    "DELETE /api/v1/posts/:id",
+    "POST /api/v1/posts/:id/schedule",
+    "POST /api/v1/posts/:id/publish",
+    "POST /api/v1/posts/batch-schedule",
+    "GET /api/v1/articles",
+    "POST /api/v1/articles",
+    "PUT /api/v1/articles/:id",
+    "POST /api/v1/articles/:id/publish",
+    "POST /api/v1/upload",
+    "GET /api/v1/analytics/overview",
+    "GET /api/v1/analytics/tweets",
+    "GET /api/v1/analytics/best-times",
+    "MCP tool: opentweet_create_tweet",
+    "MCP tool: opentweet_create_thread",
+    "MCP tool: opentweet_schedule_tweet",
+    "MCP tool: opentweet_batch_schedule",
+    "MCP tool: opentweet_publish_tweet",
+    "MCP tool: opentweet_list_tweets",
+    "MCP tool: opentweet_update_tweet",
+    "MCP tool: opentweet_delete_tweet",
+    "MCP tool: opentweet_repurpose_tweet",
+    "MCP tool: opentweet_create_article",
+    "MCP tool: opentweet_publish_article",
+    "MCP tool: opentweet_add_to_evergreen",
+    "MCP tool: opentweet_get_analytics",
+    "MCP tool: opentweet_get_top_posts",
+    "MCP tool: opentweet_get_best_times",
+    "MCP tool: opentweet_upload_media",
+    "MCP tool: opentweet_generate_image",
+    "MCP tool: opentweet_search_inspiration",
+    "MCP tool: opentweet_list_accounts",
+    "MCP tool: opentweet_list_platforms",
+    "MCP tool: dm_campaign_create",
+    "MCP tool: dm_lead_approve",
+    "CLI: opentweet auth",
+    "CLI: opentweet tweet",
+    "CLI: opentweet analytics"
   ]
 }

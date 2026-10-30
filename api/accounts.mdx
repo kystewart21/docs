@@ -1,0 +1,110 @@
+---
+title: 'GET /api/v1/accounts — List Connected X Accounts'
+sidebarTitle: 'Accounts'
+description: 'Return all X accounts connected to your OpenTweet workspace. Use the account id as x_account_id when posting to a specific account in multi-account setups.'
+---
+
+The Accounts endpoint returns every X account you have connected to your OpenTweet workspace. In a single-account setup you will rarely need this endpoint, but in a multi-account workspace it is the reliable way to discover each account's `id` — the value you pass as `x_account_id` when creating or retrieving posts for a specific account.
+
+## Endpoint
+
+```
+GET https://opentweet.io/api/v1/accounts
+```
+
+## Plan limits
+
+| Plan | Connected accounts |
+|---|---|
+| Pro | 1 |
+| Advanced | Up to 3 |
+| Agency | Up to 10 |
+
+## Example request
+
+```bash
+curl -H 'Authorization: Bearer ot_your_key' \
+  https://opentweet.io/api/v1/accounts
+```
+
+## Response
+
+```json
+{
+  "accounts": [
+    {
+      "id": "65f1a2b3c4d5e6f7a8b9c0d1",
+      "x_handle": "@primary_account",
+      "x_name": "Primary Account",
+      "is_primary": true,
+      "x_subscription_type": "Premium+",
+      "connected_at": "2026-01-15T10:00:00Z",
+      "profile_image_url": "https://pbs.twimg.com/..."
+    },
+    {
+      "id": "65f1a2b3c4d5e6f7a8b9c0d2",
+      "x_handle": "@secondary_account",
+      "x_name": "Secondary Account",
+      "is_primary": false,
+      "nickname": "Brand",
+      "x_subscription_type": "Pro",
+      "connected_at": "2026-02-20T14:00:00Z",
+      "profile_image_url": "https://pbs.twimg.com/..."
+    }
+  ]
+}
+```
+
+## Response fields
+
+<ResponseField name="id" type="string">
+  The OpenTweet internal identifier for this X account. Pass this value as `x_account_id` in POST or GET `/posts` requests to target this account explicitly.
+</ResponseField>
+
+<ResponseField name="x_handle" type="string">
+  The account's X handle, including the leading `@`.
+</ResponseField>
+
+<ResponseField name="is_primary" type="boolean">
+  `true` for the account that receives posts when no `x_account_id` is specified.
+</ResponseField>
+
+<ResponseField name="nickname" type="string">
+  An optional human-readable label you assigned to the account in the dashboard. Only present when set.
+</ResponseField>
+
+<ResponseField name="x_subscription_type" type="string">
+  The X subscription tier of this account (e.g. `"Free"`, `"Pro"`, `"Premium+"`, `"Verified Organisation"`). Determines thread length limits and media capabilities on the X side.
+</ResponseField>
+
+<ResponseField name="connected_at" type="string">
+  ISO 8601 timestamp of when the account was first connected to OpenTweet.
+</ResponseField>
+
+<ResponseField name="profile_image_url" type="string">
+  URL of the account's current X profile picture. May not be present on all accounts.
+</ResponseField>
+
+## Posting to a specific account
+
+Once you have an account's `id`, pass it as `x_account_id` in your post creation request to route that post through the correct account.
+
+```bash
+# Step 1 — List accounts to find the id
+curl -H 'Authorization: Bearer ot_your_key' \
+  https://opentweet.io/api/v1/accounts
+
+# Step 2 — Post to the second account using its id
+curl -X POST https://opentweet.io/api/v1/posts \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "text": "Hello from my second account!",
+    "x_account_id": "65f1a2b3c4d5e6f7a8b9c0d2",
+    "publish_now": true
+  }'
+```
+
+<Note>
+  Omitting `x_account_id` from any request routes the post through your **primary account** — the one where `is_primary` is `true`.
+</Note>

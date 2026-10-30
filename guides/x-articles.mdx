@@ -1,0 +1,90 @@
+---
+title: 'Write and Publish Long-Form X Articles with OpenTweet'
+sidebarTitle: 'X Articles'
+description: 'Write X Articles in markdown and schedule them alongside your posts. Publish via REST API or AI agent using the same ot_ key — no separate tool needed.'
+---
+
+X Articles are long-form posts that live permanently on your profile, get indexed by search engines, and continue earning reads long after the timeline has moved on. OpenTweet lets you write Articles in markdown, schedule them on the same calendar as your regular posts, and publish them via the REST API or through your AI agent — all with the same `ot_` key you already use for tweets. Publishing X Articles requires an X Premium account on any paid tier.
+
+## Create an Article in the Dashboard
+
+<Steps>
+  <Step title="Open the Article composer">
+    In the dashboard, click **New Post** and select **Article** from the post-type menu.
+  </Step>
+  <Step title="Write in the markdown editor">
+    The editor supports headings, bold, italic, links, lists, blockquotes, embedded posts, and images. Paste or type your content directly in markdown — the preview pane renders it in real time.
+  </Step>
+  <Step title="Add a title and cover image">
+    Enter a title in the **Title** field at the top of the editor. Optionally upload a cover image — it appears at the top of the Article on X and in social previews.
+  </Step>
+  <Step title="Schedule or publish immediately">
+    Click **Schedule** to pick a date and time, or click **Publish Now** to push the Article to X immediately. Scheduled Articles appear on your content calendar alongside regular posts.
+  </Step>
+</Steps>
+
+---
+
+## Create an Article via REST API
+
+Send a `POST` request to `/api/v1/articles` with your content in markdown. Include `scheduled_date` to queue the Article, or omit it to save as a draft.
+
+```bash
+curl -X POST https://opentweet.io/api/v1/articles \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "title": "What 80,000 Scheduled Posts Taught Us About Timing",
+    "content_markdown": "# Introduction\n\nWe analyzed every post published through OpenTweet this year...\n\n## Key Finding\n\nThe best time is **not** 9am Tuesday.",
+    "cover_image_url": "https://example.com/cover.jpg",
+    "scheduled_date": "2026-07-15T09:00:00Z"
+  }'
+```
+
+To publish a draft or scheduled Article immediately, send a `POST` to the article's publish endpoint using its ID:
+
+```bash
+curl -X POST https://opentweet.io/api/v1/articles/ARTICLE_ID/publish \
+  -H 'Authorization: Bearer ot_your_key'
+```
+
+---
+
+## Create an Article via MCP Agent
+
+Your agent has two dedicated tools for Articles:
+
+| Tool | What it does |
+|------|--------------|
+| `opentweet_create_article` | Creates an Article from markdown as a draft, scheduled post, or live publication |
+| `opentweet_publish_article` | Publishes a draft or scheduled Article immediately |
+
+You can prompt your agent naturally — for example:
+
+> "Write and schedule an X Article about the future of AI agents for Thursday at 9am."
+
+The agent generates the markdown, calls `opentweet_create_article` with the appropriate `scheduled_date`, and returns the Article ID for your records.
+
+---
+
+## Markdown Support Reference
+
+Write your Article content in standard markdown. The table below shows what X Articles render and what falls back to plain text.
+
+| Supported | Not Supported |
+|-----------|---------------|
+| Headings (H1–H3) | Code blocks (preserved as plain text) |
+| **Bold**, *italic*, ~~strikethrough~~ | |
+| Links | |
+| Bullet and numbered lists | |
+| Blockquotes | |
+| Images (uploaded to X automatically) | |
+| Embedded X posts (status URL on its own line) | |
+
+Images referenced by URL in your markdown are automatically uploaded to X's media hosting — you don't need to pre-upload them separately.
+
+---
+
+<Note>
+  Articles require both a paid OpenTweet plan (Pro, Advanced, or Agency) and an active **X Premium** subscription on your connected X account. They are not accessible during the free trial period.
+</Note>

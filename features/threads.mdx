@@ -1,0 +1,87 @@
+---
+title: 'Create and Schedule Twitter Threads up to 25 Parts'
+sidebarTitle: 'Threads'
+description: 'Write and schedule multi-part Twitter threads with up to 25 tweets. Attach unique media to each part and preview the full chain before it goes live.'
+---
+
+OpenTweet lets you compose, preview, and schedule multi-part Twitter threads of up to 25 tweets. Write the entire thread once — in the dashboard composer, via the REST API, or by prompting an AI agent through the MCP — and OpenTweet handles posting each part as a real reply chain on X at the scheduled time.
+
+## How Threads Work
+
+A thread is a sequence of up to 25 individual tweet parts. Each part can carry its own media (images or video), so every tweet in the chain stands on its own visually. When OpenTweet publishes a thread, it posts the first tweet and then replies to it with each subsequent part in order, building a real reply chain that looks and behaves exactly like a native X thread.
+
+<Steps>
+  <Step title="Write your thread">
+    Open **New Post** in the dashboard and toggle **Thread mode**, or pass `is_thread: true` in the API. Add each part as a separate tweet.
+  </Step>
+  <Step title="Attach media per part">
+    Upload images or video to individual parts. Each part supports its own set of media — they don't have to match.
+  </Step>
+  <Step title="Preview the full chain">
+    Click **Preview Thread** to see the full reply chain as it will appear on X before you commit to scheduling.
+  </Step>
+  <Step title="Schedule or publish">
+    Pick a scheduled date or publish immediately. All parts go out in order at the set time.
+  </Step>
+</Steps>
+
+## Cross-Posting Threads
+
+Threads behave differently on each platform:
+
+| Platform | Thread behavior |
+|----------|----------------|
+| X (Twitter) | Posted as a real reply chain — each part replies to the previous |
+| Bluesky | Posted as a real reply chain using the AT Protocol |
+| LinkedIn | No native thread format — all parts are combined into a single post |
+
+When you cross-post a thread, OpenTweet adapts the format automatically for each network. Your LinkedIn audience gets the full content in one post; your X and Bluesky audiences get the proper reply chain.
+
+## Schedule a Thread via the REST API
+
+Set `is_thread` to `true` and pass the parts as an array in `thread_tweets`. Add a `scheduled_date` to queue the thread for later, or use `publish_now: true` to post immediately:
+
+```bash
+curl -X POST https://opentweet.io/api/v1/posts \
+  -H 'Authorization: Bearer ot_your_key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "text": "Here is what I learned building a SaaS in 2026:",
+    "is_thread": true,
+    "thread_tweets": [
+      "1/ Start with a problem you have yourself",
+      "2/ Ship fast, iterate faster",
+      "3/ Your first 10 users matter more than the next 1000"
+    ],
+    "thread_media": [["https://img1.jpg"], [], ["https://img3.jpg"]],
+    "scheduled_date": "2026-07-10T09:00:00Z"
+  }'
+```
+
+### Attaching Media to Individual Parts
+
+Pass `thread_media` as an **array of arrays**. Each inner array maps to the corresponding tweet part by index and contains the media URLs for that part. Use an empty array `[]` for parts that have no media:
+
+```json
+"thread_media": [
+  ["https://img1.jpg"],   // Part 1 — one image
+  [],                      // Part 2 — no media
+  ["https://img3.jpg"]    // Part 3 — one image
+]
+```
+
+The `thread_media` array must be the same length as `thread_tweets`, or the request returns a `400` error.
+
+## Schedule a Thread via the MCP
+
+Tell your AI agent what you want in plain language and it calls the right tools automatically:
+
+```
+Schedule a 5-part thread about [topic] for Monday at 9am
+```
+
+The agent uses `opentweet_create_tweet` with `is_thread: true`, fills in the parts, and sets the scheduled date — you just review and approve from the calendar.
+
+<Note>
+  X restricts programmatic replies to posts by other users, but threads are not affected. A thread is a reply chain on **your own** post, which is fully supported by the X API. OpenTweet uses this distinction to post threads reliably on your behalf.
+</Note>
