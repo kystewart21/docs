@@ -1,18 +1,21 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "name": "OpenTweet",
+  "name": "College Scorecard MCP",
   "theme": "luma",
-  "favicon": "https://media.brand.dev/0c196f4c-358f-454d-8117-fae05505e8a6.png",
+  "logo": {
+    "light": "https://media.brand.dev/3c579df3-3c63-4de0-93b4-2fac7209388b.png",
+    "dark": "https://media.brand.dev/3c579df3-3c63-4de0-93b4-2fac7209388b.png"
+  },
+  "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#ff511c",
-    "light": "#111827",
-    "dark": "#747474"
+    "primary": "#d83933",
+    "light": "#23639c"
   },
   "navbar": {
     "primary": {
       "type": "button",
-      "label": "Start Free Trial",
-      "href": "https://opentweet.io/auth/login"
+      "label": "Get Started",
+      "href": "/introduction"
     }
   },
   "navigation": {
@@ -29,31 +32,29 @@
             ]
           },
           {
-            "group": "Connect Your Agent",
+            "group": "MCP Tools",
             "pages": [
-              "mcp/setup",
-              "mcp/tools",
-              "mcp/chatgpt"
-            ]
-          },
-          {
-            "group": "Features",
-            "pages": [
-              "features/scheduling",
-              "features/threads",
-              "features/cross-posting",
-              "features/evergreen-queue",
-              "features/connectors",
-              "features/ai-studio"
+              "tools/overview",
+              "tools/search-schools",
+              "tools/get-school",
+              "tools/compare-schools",
+              "tools/find-programs"
             ]
           },
           {
             "group": "Guides",
             "pages": [
-              "guides/post-from-agent",
-              "guides/bulk-scheduling",
-              "guides/x-articles",
-              "guides/dm-campaigns"
+              "guides/connecting-ai-agents",
+              "guides/school-comparison",
+              "guides/program-research"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/data-fields",
+              "reference/filters-and-sorting",
+              "reference/faq"
             ]
           }
         ]
@@ -62,41 +63,26 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "Overview",
+            "group": "MCP Endpoint",
             "pages": [
               "api/overview",
-              "api/authentication",
-              "api/rate-limits",
-              "api/errors"
+              "api/tool-list",
+              "api/error-codes"
             ]
           },
           {
-            "group": "Posts",
+            "group": "College Scorecard Data",
             "pages": [
-              "api/posts/create",
-              "api/posts/list",
-              "api/posts/schedule",
-              "api/posts/publish",
-              "api/posts/batch-schedule"
-            ]
-          },
-          {
-            "group": "Articles & Media",
-            "pages": [
-              "api/articles",
-              "api/upload"
-            ]
-          },
-          {
-            "group": "Analytics & Accounts",
-            "pages": [
-              "api/analytics",
-              "api/accounts",
-              "api/cross-posting"
+              "api/schools",
+              "api/programs"
             ]
           }
         ]
       }
     ]
+  },
+  "banner": {
+    "content": "BOX Scorecard connection repair: use the authenticated Sites-provisioned plugin. See Authentication for verification requirements.",
+    "dismissible": false
   }
 }

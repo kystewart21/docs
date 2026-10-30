@@ -1,0 +1,31 @@
+---
+title: "BOX Scorecard access and data questions"
+sidebarTitle: "FAQ"
+description: "Understand BOX Scorecard authentication, institution identifiers, CIP queries, reporting dates and the limits of academic and financial comparisons."
+---
+
+BOX College Scorecard supports institutional research, subject to the service's access policy and the evidence returned by each request.
+
+## Do I need to paste a government API key?
+
+No. Do not put upstream credentials into chat or tool arguments. The service's server-side credential is separate from your own authorised connection. See [Authentication](/authentication).
+
+## Does sharing the MCP connect the website?
+
+No. Account access, the consuming Site's workspace permission and visitor consent are separate checks.
+
+## Can I search programmes by a plain-language major?
+
+The current `find_programs` schema requires `cip_code`. Translate the intended major carefully into the appropriate CIP, then check credential level and the exact institution. Do not send a keyword in place of a required CIP code.
+
+## What does a fresh retrieval date mean?
+
+It records when the service fetched the response. It does not establish the reporting year of each measure. The current worker queries `latest` fields. Where reporting years are not returned, show them as unknown.
+
+## Can the result establish a baseball opportunity?
+
+No. NCAA membership, baseball sponsorship, rosters, incoming commitments, coach-confirmed needs and individual financial-aid offers require independent evidence.
+
+## How should missing values be handled?
+
+Keep missing or suppressed values unknown. Do not substitute zero. Check the institution's identity using its returned federal UNITID, name and state before comparing it with another school.

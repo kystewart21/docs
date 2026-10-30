@@ -1,0 +1,13 @@
+---
+title: "Read programme results"
+sidebarTitle: "Programmes"
+description: "Use the current BOX College Scorecard worker and its verified tool schemas. Preserve institution identity, source metadata and explicit research limits."
+---
+
+BOX Scorecard `find_programs` queries reported fields of study using `cip_code`, with optional institution and credential constraints. See [Find reported programmes](/tools/find-programs).
+
+The response wrapper carries `source`, `retrieved_at`, upstream `metadata` and raw `results`. Inspect the returned programme codes and credential levels. Do not assume a request returns only the desired programme row or that every currently offered degree is represented.
+
+Confirm current institutional course requirements and degree availability independently. A missing or failed result is a research gap, not proof that a degree does not exist.
+
+See [Authentication](/authentication) for required access and [Quickstart](/quickstart) for connection verification.

@@ -1,0 +1,15 @@
+---
+title: "Find reported programmes"
+sidebarTitle: "find_programs"
+description: "Use the current BOX College Scorecard worker and its verified tool schemas. Preserve institution identity, source metadata and explicit research limits."
+---
+
+Use `find_programs` with required `cip_code`. Optional inputs are `school_id`, `credential_level`, `page` and `per_page`. The schema accepts a numeric CIP string with an optional decimal suffix; it does not accept a plain-language major keyword.
+
+```json
+{"cip_code":"11.0701","school_id":110404,"credential_level":3,"per_page":20}
+```
+
+This is an input example, not proof that the institution offers that programme. The worker queries `latest.programs.cip_6_digit` and returns `source`, `retrieved_at`, `metadata` and raw `results`. Check the returned CIP, institution and credential. Independently confirm current programme requirements and availability with the institution.
+
+See [Authentication](/authentication) for required access and [Quickstart](/quickstart) for connection verification.

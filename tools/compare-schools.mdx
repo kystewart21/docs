@@ -1,0 +1,13 @@
+---
+title: "Compare institutions"
+sidebarTitle: "compare_schools"
+description: "Use the current BOX College Scorecard worker and its verified tool schemas. Preserve institution identity, source metadata and explicit research limits."
+---
+
+Use `compare_schools` with required `ids`, an array of two to five integer federal UNITIDs. Optional `fields` selects upstream fields or supported aliases. Omit it for the worker's default field set.
+
+The worker returns `source`, `retrieved_at` and `schools`. Comparison rows retain upstream field names, unlike the normalised single-school response. Do not assume those shapes are identical or that every requested institution returned a row.
+
+Compare equivalent measures with their available reporting context. Average net price is not a personal aid quote, and costs should not be combined across different reporting periods without disclosure.
+
+See [Authentication](/authentication) for required access and [Quickstart](/quickstart) for connection verification.

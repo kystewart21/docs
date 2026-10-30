@@ -1,0 +1,13 @@
+---
+title: "Use supported search constraints"
+sidebarTitle: "Filters and sorting"
+description: "Use the current BOX College Scorecard worker and its verified tool schemas. Preserve institution identity, source metadata and explicit research limits."
+---
+
+BOX Scorecard `search_schools` supports the filters documented in [Search institutions](/tools/search-schools). Use `state` for a two-letter state code and `ownership` for the supported numeric or named ownership values.
+
+The current aliases include `name`, `city`, `state`, `ownership`, `locale`, `student_size`, `admission_rate`, `acceptance_rate`, `tuition_in_state`, `tuition_out_of_state`, `net_price`, `graduation_rate`, `graduation_rate_4yr` and `median_earnings`. Both graduation aliases map to the same overall completion field; the `graduation_rate_4yr` label does not establish four-year completion.
+
+`sort_order` accepts `asc` or `desc`. `page` defaults to zero; `per_page` defaults to 20 with schema bounds of 1 to 100. Follow pagination rather than treating the first page as the entire catalogue.
+
+See [Authentication](/authentication) for required access and [Quickstart](/quickstart) for connection verification.

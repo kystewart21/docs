@@ -1,121 +1,52 @@
 ---
-title: 'OpenTweet REST API — Base URL, Auth, and Endpoints'
-sidebarTitle: 'Overview'
-description: 'Full reference for the OpenTweet REST API: base URL, authentication, rate limits, and all endpoints for posting, scheduling, and account management.'
+title: "BOX Scorecard endpoint and tool reference"
+sidebarTitle: "Overview"
+description: "Identify the BOX College Scorecard service and its four tool inputs. Keep authenticated transport, returned evidence and source limitations distinct."
 ---
 
-The OpenTweet REST API gives you programmatic control over every feature in the platform — post creation, scheduling, media uploads, analytics, and account management. Every paid plan (Pro, Advanced, and Agency) includes full API access with no add-on required.
+BOX College Scorecard exposes institution and programme lookup tools. Use the transport and authentication details returned by the Site's supported MCP connection rather than copying a generic client's configuration.
 
-## Base URL
+## Service identity
 
-All API requests go to:
+| Item | Value |
+| --- | --- |
+| Service origin | `https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site` |
+| Legacy registered route | `/api/mcp` |
+| Provisioned Sites MCP route | `/mcp`, confirmed in version 3 |
+| Data provider | U.S. Department of Education College Scorecard |
+| Purpose | Read-only college research |
 
+The service's MCP route and the [official upstream API documentation](https://collegescorecard.ed.gov/data/documentation/) are separate interfaces. Mintlify hosts this documentation; it does not implement the BOX data service.
+
+## Tool inputs
+
+| Tool | Required input | Optional input |
+| --- | --- | --- |
+| `search_schools` | None | `query`, `filters`, `page`, `per_page`, `sort_by`, `sort_order` |
+| `get_school` | Integer `id` (UNITID) | None |
+| `compare_schools` | `ids`, two to five UNITIDs | `fields` |
+| `find_programs` | `cip_code` | `school_id`, `credential_level`, `page`, `per_page` |
+
+Use the discovered tool schema for current accepted filters and bounds. Do not infer support for an arbitrary Scorecard field from these examples.
+
+## Example tool call
+
+This JSON-RPC body illustrates a lookup. It is not an anonymous curl recipe or a captured successful result.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "get_school",
+    "arguments": {"id": 110404}
+  }
+}
 ```
-https://opentweet.io
-```
 
-Every endpoint returns JSON. Send `Content-Type: application/json` on all `POST` and `PUT` requests.
+## Evidence handling
 
-## Authentication
+A successful MCP transport response alone is insufficient. Check for a tool error, verify institution identity and retain source metadata. Do not invent a response schema, reporting year or financial-aid award. Distinguish the date data was retrieved from the period measured.
 
-Authenticate every request by passing your `ot_` API key in one of two headers:
-
-```bash
-# Option 1 — Authorization header (preferred)
-Authorization: Bearer ot_your_key
-
-# Option 2 — X-API-Key header
-X-API-Key: ot_your_key
-```
-
-See the [Authentication guide](/api/authentication) for full details on creating, rotating, and revoking keys.
-
-## Quick Start
-
-```bash
-# Verify your key
-curl -H 'Authorization: Bearer ot_your_key' https://opentweet.io/api/v1/me
-
-# Post immediately
-curl -X POST https://opentweet.io/api/v1/posts \
-  -H 'Authorization: Bearer ot_your_key' \
-  -H 'Content-Type: application/json' \
-  -d '{"text": "Hello from the API!", "publish_now": true}'
-```
-
-Ready to dive in? Follow the [Quickstart guide](/quickstart) for a step-by-step walkthrough, or explore the full endpoint reference below.
-
-## Endpoints
-
-<CardGroup cols={2}>
-  <Card title="Account &amp; Auth" icon="user">
-    Verify your key, inspect subscription status, and list connected X accounts.
-  </Card>
-  <Card title="Posts" icon="pen-to-square">
-    Create, schedule, publish, update, and delete posts and threads.
-  </Card>
-  <Card title="Articles" icon="newspaper">
-    Create and publish long-form X Articles directly from the API.
-  </Card>
-  <Card title="Analytics" icon="chart-line">
-    Retrieve account-level stats, tweet engagement, and best posting times.
-  </Card>
-</CardGroup>
-
-### Account
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/v1/me` | Verify key, check subscription and limits |
-| `GET` | `/api/v1/accounts` | List connected X accounts |
-| `GET` | `/api/v1/cross-posting` | Cross-posting targets and per-network limits |
-
-### Posts
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/v1/posts` | List posts with pagination and status filter |
-| `POST` | `/api/v1/posts` | Create, schedule, or bulk-create posts |
-| `GET` | `/api/v1/posts/:id` | Get a single post |
-| `PUT` | `/api/v1/posts/:id` | Update a draft or scheduled post |
-| `DELETE` | `/api/v1/posts/:id` | Delete a post |
-| `POST` | `/api/v1/posts/:id/schedule` | Schedule a post |
-| `POST` | `/api/v1/posts/:id/publish` | Publish a post immediately |
-| `POST` | `/api/v1/posts/batch-schedule` | Schedule up to 50 posts at once |
-
-### Articles
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/v1/articles` | List articles |
-| `POST` | `/api/v1/articles` | Create an article |
-| `PUT` | `/api/v1/articles/:id` | Update an article |
-| `POST` | `/api/v1/articles/:id/publish` | Publish an article immediately |
-
-### Media
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/v1/upload` | Upload media (image or video) |
-
-### Analytics
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/v1/analytics/overview` | Account-level analytics |
-| `GET` | `/api/v1/analytics/tweets` | Tweet engagement metrics (Advanced+) |
-| `GET` | `/api/v1/analytics/best-times` | Best posting times |
-
-<Note>
-  Tweet engagement analytics (`/api/v1/analytics/tweets`) require an **Advanced** plan or higher. Calling this endpoint on a Pro plan returns a `403` response.
-</Note>
-
-## Plan Access
-
-The API is available on every paid OpenTweet plan. Rate limits and daily post caps vary by plan — see the [Rate Limits reference](/api/rate-limits) for the full breakdown.
-
-| Plan | API Access | Requests/min | Posts/day |
-|------|------------|--------------|-----------|
-| Pro | ✓ | 60 | 20 |
-| Advanced | ✓ | 300 | 100 |
-| Agency | ✓ | 300 | 300 |
+See [Authentication](/authentication) for the separate 401 and workspace 403 cases. No Scorecard request should be directed to an OpenTweet URL.

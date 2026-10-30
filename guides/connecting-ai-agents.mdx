@@ -1,0 +1,15 @@
+---
+title: "Connect an authorised Scorecard client"
+sidebarTitle: "AI agent setup"
+description: "Use the Site-provisioned BOX Scorecard connection and verify a real institutional lookup. Keep account access separate from website delegation."
+---
+
+Connect BOX College Scorecard through the supported Site-provisioned plugin flow. An endpoint URL alone does not establish permission to call a workspace-restricted service.
+
+Follow [Authentication](/authentication) to distinguish account access, workspace delegation and visitor consent. Use the MCP connection URL returned by Sites after publication rather than assuming a generic client configuration is supported.
+
+For ChatGPT or Codex, use the existing BOX College Scorecard plugin. If Sites provisions a replacement plugin while repairing MCP capability, use the exact plugin returned by Sites and verify its tools before changing the consuming website.
+
+The minimum proof is a successful `get_school` call with a resolved UNITID. For the website, also verify that the request uses the visitor's supported connection and that its answer survives reload. See [Quickstart](/quickstart).
+
+Do not copy a browser cookie into a server, disable authentication or send private athlete data merely to test this public institutional lookup.

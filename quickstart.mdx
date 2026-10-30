@@ -1,119 +1,37 @@
 ---
-title: 'Quickstart: Publish to X in Minutes with OpenTweet'
-sidebarTitle: 'Quickstart'
-description: 'Get your OpenTweet API key, connect your X account, and publish your first post via REST API, MCP server, or CLI in under three minutes.'
+title: "Verify the BOX Scorecard connection"
+sidebarTitle: "Quickstart"
+description: "Check an authorised BOX College Scorecard connection with a bounded institution lookup before relying on it in a recruiting assessment or player brief."
 ---
 
-This guide walks you through getting an API key, connecting your X account, and sending your first post — all in under three minutes. Pick the integration path that fits your workflow: REST API, MCP server for AI agents, or the CLI.
+Verify BOX College Scorecard with a real tool response before using it for academic or financial recommendations. Merely seeing four tools in a menu does not prove the connection works.
 
 <Steps>
 
-<Step title="Get an API Key">
+  <Step title="Use the authorised account">
+    Open the existing BOX College Scorecard plugin in the intended workspace. Use its normal connection flow and approve only the expected access.
+  </Step>
 
-Sign in at [https://opentweet.io/auth/login](https://opentweet.io/auth/login) to start your free 7-day trial (no credit card required). Once you're in the dashboard, navigate to the **Developer** section and click **New API Key**.
+  <Step title="Verify Sites permission">
+    For Playincollege.ai, check the consuming Site's plugin eligibility. Continue only when the exact BOX Scorecard plugin is allowed. Keep visitor consent and the site's existing audience intact.
+  </Step>
 
-Your key is displayed **only once** at creation time — copy it immediately and store it somewhere safe (a password manager or secrets vault works well).
+  <Step title="Retrieve one institution">
+    Invoke `get_school` with a confirmed federal UNITID. The following is an example tool input, not a verified response:
 
-<Warning>
-Never put your `ot_` key in client-side code, a public repository, or anywhere else that could be read by a third party. Anyone who holds your key can post to your connected X account.
-</Warning>
+    ```json
+    {"id": 110404}
+    ```
 
-</Step>
+    Check the returned name, state and ID against the intended institution. Preserve the source and retrieval timestamp.
+  </Step>
 
-<Step title="Connect Your X Account">
-
-From the dashboard, click **Connect X Account** and complete the authorization flow. OpenTweet handles all X API credentials on your behalf — you do not need an X developer account or an API key from X.
-
-The entire authorization flow takes under two minutes.
-
-</Step>
-
-<Step title="Post to X">
-
-Choose how you want to publish — via the REST API, an MCP-compatible AI agent, or the CLI:
-
-<Tabs>
-
-<Tab title="REST API">
-
-Use `curl` (or any HTTP client) to publish immediately or schedule a post for later:
-
-```bash
-# Publish immediately
-curl -X POST https://opentweet.io/api/v1/posts \
-  -H 'Authorization: Bearer ot_your_key' \
-  -H 'Content-Type: application/json' \
-  -d '{"text": "Hello from my code.", "publish_now": true}'
-
-# Schedule for later (ISO 8601 date)
-curl -X POST https://opentweet.io/api/v1/posts \
-  -H 'Authorization: Bearer ot_your_key' \
-  -H 'Content-Type: application/json' \
-  -d '{"text": "Launch day.", "scheduled_date": "2026-07-10T09:00:00Z"}'
-```
-
-A successful response looks like this:
-
-```json
-{ "success": true, "posts": [{ "id": "...", "status": "scheduled" }] }
-```
-
-</Tab>
-
-<Tab title="MCP Server (AI Agents)">
-
-Paste the following config block into your MCP client — Claude Desktop, Cursor, Windsurf, ChatGPT, or any client that supports the MCP protocol. Replace `ot_your_key` with your actual API key.
-
-```json claude_desktop_config.json
-{
-  "mcpServers": {
-    "opentweet": {
-      "type": "streamable-http",
-      "url": "https://mcp.opentweet.io/mcp",
-      "headers": { "Authorization": "Bearer ot_your_key" }
-    }
-  }
-}
-```
-
-Restart the client after saving the config. Your agent now has access to **43 tools** for posting, scheduling, analytics, and more. Try prompting it:
-
-> "Post a tweet that says hello from MCP."
-
-</Tab>
-
-<Tab title="CLI">
-
-Install the OpenTweet CLI globally, authenticate with your `ot_` key, then post or schedule in a single command:
-
-```bash
-npm install -g @opentweet/cli
-opentweet auth              # paste your ot_ key when prompted
-opentweet tweet 'Shipped a new release.' --now
-opentweet tweet 'Big launch.' --schedule '2026-07-10 09:00'
-```
-
-</Tab>
-
-</Tabs>
-
-</Step>
+  <Step title="Verify the assessment path">
+    Ask the hosted recruiting AI a bounded cost or admissions question about that institution. Confirm the answer uses the actual returned facts and persists after reload. Missing reporting years must remain unknown.
+  </Step>
 
 </Steps>
 
-## Next Steps
+Use `find_programs` to check the requested CIP and credential level. An institution-level result does not verify every engineering specialism. Use `compare_schools` only with resolved institution IDs.
 
-<CardGroup cols={2}>
-  <Card title="Authentication" icon="key" href="/authentication">
-    Learn how to manage API keys, rotate credentials, and handle common auth errors.
-  </Card>
-  <Card title="MCP Tools Reference" icon="robot" href="/mcp/tools">
-    Browse all 43 MCP tools available to AI agents, with parameters and example prompts.
-  </Card>
-  <Card title="API Reference" icon="code" href="/api/overview">
-    Full REST API reference with request schemas, response shapes, and status codes.
-  </Card>
-  <Card title="Features" icon="stars" href="/features">
-    Explore the Visual Calendar, AI Studio, Connectors, Evergreen Queue, and more.
-  </Card>
-</CardGroup>
+If a step fails, retain a research hold for the affected claims. Do not fabricate a successful result or substitute OpenTweet endpoints. See [Authentication](/authentication) and [Endpoint reference](/api/overview).

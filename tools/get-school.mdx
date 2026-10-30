@@ -1,0 +1,17 @@
+---
+title: "Retrieve one institution"
+sidebarTitle: "get_school"
+description: "Use the current BOX College Scorecard worker and its verified tool schemas. Preserve institution identity, source metadata and explicit research limits."
+---
+
+Use `get_school` with a required integer `id`, the institution's federal UNITID. Resolve identity first with `search_schools`.
+
+```json
+{"id":110404}
+```
+
+The worker returns a source label, `retrieved_at` and `school`, which can be null if no matching row is returned. Check the returned name, state and ID. Fields include institution location, ownership, enrolment, admission rate, average SAT, tuition, cost of attendance, average net price, completion rate and ten-year earnings. Availability depends on the upstream response; null is not zero.
+
+A lookup does not confirm baseball sponsorship, an individual admissions outcome or an aid offer.
+
+See [Authentication](/authentication) for required access and [Quickstart](/quickstart) for connection verification.

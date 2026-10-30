@@ -1,0 +1,13 @@
+---
+title: "Handle Scorecard failures"
+sidebarTitle: "Errors"
+description: "Use the current BOX College Scorecard worker and its verified tool schemas. Preserve institution identity, source metadata and explicit research limits."
+---
+
+Distinguish platform access failures from BOX MCP tool failures. An HTTP 401 ChatGPT sign-in page is not a successful tool response. A Sites HTTP 403 `sites_workspace_app_access_denied` is a workspace delegation restriction.
+
+In the current worker, malformed JSON returns JSON-RPC error `-32700` (Parse error), and an unknown method returns `-32601` (Method not found). A failed tool invocation returns `result.isError: true` with text describing the error. Do not treat transport success as successful data retrieval.
+
+A missing upstream credential returns a tool error. Preserve the error and research hold; do not invent a school record or expose credentials while diagnosing it. See [Authentication](/authentication).
+
+See [Authentication](/authentication) for required access and [Quickstart](/quickstart) for connection verification.

@@ -1,0 +1,13 @@
+---
+title: "Research a reported major"
+sidebarTitle: "Programme research"
+description: "Use the current BOX College Scorecard worker and its verified tool schemas. Preserve institution identity, source metadata and explicit research limits."
+---
+
+Translate the student's actual intended major into a suitable CIP before calling BOX Scorecard `find_programs`. Specify `credential_level` when the qualification matters, and limit to an exact `school_id` after resolving identity.
+
+Check the returned programme rows rather than assuming a successful query establishes the desired degree. Broad engineering interest does not identify a particular engineering branch. Confirm the current degree title, campus, entry requirements and course preparation with official institutional sources.
+
+Retain uncertainty where the query fails or coverage is incomplete. Do not substitute a different major without the family's knowledge.
+
+See [Authentication](/authentication) for required access and [Quickstart](/quickstart) for connection verification.

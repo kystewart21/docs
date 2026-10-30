@@ -1,0 +1,13 @@
+---
+title: "Read institution results"
+sidebarTitle: "Schools"
+description: "Use the current BOX College Scorecard worker and its verified tool schemas. Preserve institution identity, source metadata and explicit research limits."
+---
+
+BOX Scorecard supports institution search, single-school lookup and comparison. See [Search institutions](/tools/search-schools), [Retrieve one institution](/tools/get-school) and [Compare institutions](/tools/compare-schools) for inputs.
+
+Search returns `schools` and upstream `metadata`; a single lookup returns `school`; comparison returns raw upstream rows under `schools`. Each successful wrapper carries a source label and retrieval timestamp.
+
+Verify returned IDs, names and states. Keep missing values unknown, preserve reporting-period gaps and avoid equating historical net price with individual affordability.
+
+See [Authentication](/authentication) for required access and [Quickstart](/quickstart) for connection verification.

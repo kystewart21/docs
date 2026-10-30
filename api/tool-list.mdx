@@ -1,0 +1,13 @@
+---
+title: "Discover the four Scorecard tools"
+sidebarTitle: "Tool list"
+description: "Use the current BOX College Scorecard worker and its verified tool schemas. Preserve institution identity, source metadata and explicit research limits."
+---
+
+Use the authenticated MCP connection to request `tools/list`. The current BOX worker exposes `search_schools`, `get_school`, `compare_schools` and `find_programs`.
+
+Each tool has an `inputSchema` and read-only annotations: `readOnlyHint: true`, `destructiveHint: false`, `idempotentHint: true`, `openWorldHint: true`. Open-world access reflects external Department of Education requests. Read-only annotations do not grant permission or replace visitor consent.
+
+The supported Sites route is `/mcp`; `/api/mcp` remains a compatibility route. Use the connection returned by Sites rather than an anonymous request to a workspace-restricted endpoint.
+
+See [Authentication](/authentication) for required access and [Quickstart](/quickstart) for connection verification.

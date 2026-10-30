@@ -1,62 +1,30 @@
 ---
-title: 'OpenTweet: The AI-Ready Posting Layer for X (Twitter)'
-sidebarTitle: 'Introduction'
-description: 'OpenTweet gives developers and AI agents a hosted MCP server, REST API, and CLI to post and schedule on X — one key, no X developer account needed.'
+title: "BOX College Scorecard MCP"
+sidebarTitle: "Introduction"
+description: "Use BOX College Scorecard for source-attributed college research. Understand its four lookup tools, access requirements and assessment limits."
 ---
 
-OpenTweet is the posting layer for X (Twitter). Whether you're an AI agent that needs to publish content autonomously, a developer building a social automation tool, or a creator managing a content calendar, OpenTweet gives you a single API key and three flexible integration paths — no X developer account, no OAuth dance, no friction.
+BOX College Scorecard provides read-only institutional and programme research for B.O.X. recruiting assessments. This documentation describes the BOX service, not OpenTweet or X posting.
 
-## Three Ways to Integrate
+## Data and limits
 
-Connect to OpenTweet using whichever interface fits your workflow:
+The four tools retrieve U.S. Department of Education College Scorecard data. Retain the returned institution identity, source and retrieval date. A retrieval date is not the underlying reporting year. Missing or suppressed values remain unknown.
 
-- **Hosted MCP Server** — Point any MCP-compatible client (Claude Desktop, Cursor, Windsurf, ChatGPT) to `https://mcp.opentweet.io/mcp` and your AI agent instantly gains 43 tools for posting, scheduling, and analytics.
-- **REST API** — Send standard HTTP requests to `https://opentweet.io/api/v1` from any language or framework. Authenticate with a single Bearer token.
-- **CLI** — Install `@opentweet/cli` via npm and post or schedule tweets from your terminal or CI pipeline in seconds.
+| Tool | Purpose |
+| --- | --- |
+| `search_schools` | Search institutions by name and supported filters |
+| `get_school` | Retrieve an institution by federal UNITID |
+| `compare_schools` | Compare two to five institutions |
+| `find_programs` | Research reported fields of study using CIP codes |
 
-All three interfaces are included in every plan — pick one, or use all three.
+Scorecard does not establish NCAA division, baseball sponsorship, roster openings, coach interest, individual admission probability or a family's financial-aid offer. Verify those separately.
 
-## Key Features
+## Connection
 
-<CardGroup cols={2}>
-  <Card title="Visual Calendar" icon="calendar" href="/features/scheduling">
-    Drag-and-drop scheduling calendar so you can see, rearrange, and fill gaps in your content plan at a glance.
-  </Card>
-  <Card title="Cross-Posting" icon="share-nodes" href="/features/cross-posting">
-    Publish the same content to X, Bluesky, and LinkedIn simultaneously from a single API call or dashboard action.
-  </Card>
-  <Card title="AI Studio" icon="wand-magic-sparkles" href="/features/ai-studio">
-    Generate, rewrite, and optimize post copy with built-in AI — directly in the dashboard or via the API.
-  </Card>
-  <Card title="Connectors" icon="plug" href="/features/connectors">
-    Automatically turn RSS feeds, GitHub releases, and Stripe events into scheduled posts without writing glue code.
-  </Card>
-  <Card title="Evergreen Queue" icon="rotate" href="/features/evergreen-queue">
-    Recycle your best-performing posts on a rolling schedule so your top content keeps driving engagement.
-  </Card>
-  <Card title="X Articles" icon="newspaper" href="/guides/x-articles">
-    Draft and publish long-form X Articles through the same API and dashboard you already use for tweets.
-  </Card>
-  <Card title="DM Campaigns" icon="envelope" href="/guides/dm-campaigns">
-    Send personalized direct-message sequences to your audience at scale, with rate limiting handled for you.
-  </Card>
-  <Card title="Analytics" icon="chart-line" href="/api/analytics">
-    Track impressions, engagement rate, follower growth, and post-level metrics from a unified analytics dashboard.
-  </Card>
-</CardGroup>
+Use the Site-provisioned BOX College Scorecard plugin and its supported authenticated connection. A browser login, shared document or Mintlify account does not authorise a server-to-server request.
 
-## Plans
+See [Authentication](/authentication), [Quickstart](/quickstart) and [Endpoint reference](/api/overview). Sites version 3 declares MCP support. Its provisioned connection URL is `https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/mcp`. The legacy `/api/mcp` route remains for compatibility, but older manually registered connections may still fail authentication.
 
-Every plan includes the REST API, CLI, and hosted MCP server, and starts with a **7-day free trial** — no credit card required.
-
-| Plan | Price | X Accounts | Posts / Day | API Keys |
-|------|-------|-----------|-------------|----------|
-| **Pro** | $11.99 / mo | 1 | 20 | 3 |
-| **Advanced** | $29 / mo | 3 | 100 | 10 |
-| **Agency** | $49 / mo | 10 | 300 | 25 |
-
-Choose the plan that matches your volume, then upgrade at any time as your needs grow.
-
-## No X Developer Account Needed
-
-OpenTweet handles the X API credentials on your behalf. To connect your X account, just click **Connect X Account** in the dashboard and authorize OpenTweet — the whole process takes under two minutes. You never need to apply for X developer access, create an X app, or manage OAuth tokens yourself.
+<Warning>
+  On 30 October 2026, Sites confirmed the version 3 MCP publication. The older connector still returned a sign-in gate and Recruiting Hub still reported a separate workspace-policy denial. A successful call through the provisioned connection and a hosted assessment remain required.
+</Warning>

@@ -1,0 +1,17 @@
+---
+title: "Search institutions"
+sidebarTitle: "search_schools"
+description: "Use the current BOX College Scorecard worker and its verified tool schemas. Preserve institution identity, source metadata and explicit research limits."
+---
+
+Use `search_schools` to discover institution IDs. Optional inputs are `query`, `filters`, `page`, `per_page`, `sort_by` and `sort_order`. Pagination starts at zero; the schema permits 1 to 100 results per page.
+
+Supported filters are `state`, `city`, `zip`, `distance`, `ownership`, `locale`, `min_student_size`, `max_student_size`, `min_admission_rate`, `max_admission_rate`, `min_net_price`, `max_net_price` and `predominant_degree`. Distance requires a ZIP code. Ownership accepts 1, 2, 3 or `public`, `private_nonprofit`, `private_for_profit`.
+
+```json
+{"query":"California Institute of Technology","filters":{"state":"CA"},"per_page":5}
+```
+
+The worker returns `source`, `retrieved_at`, `metadata` and `schools`. A name search may return similar names; verify exact identity rather than taking the first row.
+
+See [Authentication](/authentication) for required access and [Quickstart](/quickstart) for connection verification.

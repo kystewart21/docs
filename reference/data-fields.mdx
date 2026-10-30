@@ -1,0 +1,13 @@
+---
+title: "Interpret returned school fields"
+sidebarTitle: "Data fields"
+description: "Use the current BOX College Scorecard worker and its verified tool schemas. Preserve institution identity, source metadata and explicit research limits."
+---
+
+BOX Scorecard's current single-school normaliser returns `id`, `name`, `city`, `state`, `zip`, `website`, `ownership`, `locale`, `student_size`, `admission_rate`, `average_sat`, `tuition_in_state`, `tuition_out_of_state`, `cost_of_attendance`, `net_price`, `graduation_rate` and `median_earnings_10yr`.
+
+Admission and graduation rates are fractional values. A null field represents unavailable or suppressed data, not zero. `graduation_rate` maps to `latest.completion.rate_suppressed.overall`; do not describe it as a specific four-year completion measure without verifying that definition.
+
+The worker adds `source` and `retrieved_at` around the result. It currently queries `latest` fields and does not return a reporting year for each measure. Preserve that limitation in assessments. Programme and comparison tools return upstream rows rather than this normalised shape.
+
+See [Authentication](/authentication) for required access and [Quickstart](/quickstart) for connection verification.

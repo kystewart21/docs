@@ -1,101 +1,32 @@
 ---
-title: 'API Authentication and Key Management — OpenTweet API'
-sidebarTitle: 'Authentication'
-description: 'OpenTweet uses Bearer token authentication. Create an ot_ API key in the dashboard, send it in every request header, and rotate or revoke it anytime.'
+title: "Authenticate with BOX College Scorecard"
+sidebarTitle: "Authentication"
+description: "Distinguish the BOX service connection, workspace Sites permission and visitor consent. Diagnose sign-in failures without exposing API credentials."
 ---
 
-Every request to OpenTweet — whether through the REST API or the hosted MCP server — must include an `ot_` API key. OpenTweet uses Bearer token authentication: include your key in a request header, and the platform identifies your account, checks your subscription, and enforces your plan's daily limits automatically.
+BOX College Scorecard is currently workspace restricted. Public government data does not make the hosted service anonymously accessible. Use the supported Sites-provisioned plugin connection.
 
-## Sending Your Key
+## Three separate permissions
 
-You have two equivalent ways to pass your key on each request. Use whichever header your HTTP client or framework makes easier:
+1. The signed-in account must be authorised to access the Scorecard Site
+2. The workspace must allow the consuming Site to use the Scorecard plugin
+3. The visitor must approve the connection where required
 
-```bash
-# Option 1 — Authorization header (preferred)
-curl -H 'Authorization: Bearer ot_your_key' https://opentweet.io/api/v1/me
+Sharing the MCP with a second account does not automatically grant the recruiting website access through that account. A normal browser session is not a background service credential.
 
-# Option 2 — X-API-Key header
-curl -H 'X-API-Key: ot_your_key' https://opentweet.io/api/v1/me
-```
+## Credentials
 
-Both headers are accepted on every endpoint. The `Authorization: Bearer` form is preferred because it aligns with standard OAuth 2.0 conventions and is recognized by most API clients and code generators automatically.
+Do not paste API keys, session cookies or access tokens into this documentation, URLs or chat. The upstream Department of Education credential belongs in the service's server-side secret store. It is separate from visitor authentication.
 
-## Verify Your Key
+Do not send a College Scorecard key to OpenTweet. OpenTweet endpoints and `ot_` credentials are unrelated to this service.
 
-Before integrating further, confirm your key is valid and your subscription is active by calling `GET /api/v1/me`:
+## Diagnose access failures
 
-```bash
-curl -H 'Authorization: Bearer ot_your_key' https://opentweet.io/api/v1/me
-```
+| Observation | Meaning and action |
+| --- | --- |
+| HTTP 401 with a ChatGPT sign-in page | The request has not reached a successfully authenticated tool execution. Reconnect through the supported plugin flow |
+| HTTP 403 with `sites_workspace_app_access_denied` | Sites reports a workspace delegation restriction. Reconcile effective policy; changing an upstream API key does not resolve it |
+| Sites reports no declared MCP server | Check the service's MCP capability declaration and supported route, then republish through Sites |
+| Tool-level error | Inspect the returned error without labelling missing data as zero or claiming verification |
 
-A successful response looks like this:
-
-```json
-{
-  "authenticated": true,
-  "subscription": { "has_access": true, "status": "active" },
-  "limits": { "can_post": true, "remaining_posts_today": 17, "daily_limit": 20 }
-}
-```
-
-| Field | Description |
-|-------|-------------|
-| `authenticated` | `true` if the key is valid and recognized. |
-| `subscription.has_access` | `true` if your plan is active (trial or paid). |
-| `subscription.status` | `"active"`, `"trialing"`, `"canceled"`, or `"past_due"`. |
-| `limits.can_post` | `true` if you have remaining posts in today's allowance. |
-| `limits.remaining_posts_today` | Number of posts you can still publish before midnight UTC. |
-| `limits.daily_limit` | Your plan's maximum posts per day. |
-
-## Creating and Managing Keys
-
-Create and revoke API keys from the **Developer** section of your dashboard:
-
-1. Open [https://opentweet.io](https://opentweet.io) and sign in.
-2. Navigate to **Dashboard → Developer → New API Key**.
-3. Give the key a descriptive name (e.g., `ci-pipeline` or `my-agent`).
-4. Copy the key immediately — it is displayed **only once** at creation time and cannot be retrieved later.
-
-Your plan determines how many keys you can hold simultaneously: 3 on Pro, 10 on Advanced, and 25 on Agency.
-
-## Rotating Keys
-
-Rotate a key whenever you suspect it has been exposed or as part of a regular credential hygiene cycle:
-
-1. Create a new key in the Developer section.
-2. Update every integration, environment variable, or config file that references the old key.
-3. Delete the old key from the dashboard once you've confirmed the new one works.
-
-There is no downtime during rotation — both keys are valid until you delete the old one.
-
-## Security Best Practices
-
-<Note>
-Store your `ot_` key in an environment variable (e.g., `OPENTWEET_API_KEY`) and read it at runtime. Never hardcode it in source code, commit it to a repository, or expose it in client-side JavaScript. API keys must be kept server-side only — treat them with the same care as a password.
-</Note>
-
-## MCP Server Authentication
-
-For the hosted MCP server at `https://mcp.opentweet.io/mcp`, pass your key in the `Authorization` header inside your MCP client config:
-
-```json
-{
-  "mcpServers": {
-    "opentweet": {
-      "type": "streamable-http",
-      "url": "https://mcp.opentweet.io/mcp",
-      "headers": { "Authorization": "Bearer ot_your_key" }
-    }
-  }
-}
-```
-
-If you're using the OpenTweet CLI (`@opentweet/cli`), run `opentweet auth` and paste your `ot_` key when prompted — the CLI stores it securely and uses it automatically for every subsequent command.
-
-## Common Auth Errors
-
-| Status | Meaning | Fix |
-|--------|---------|-----|
-| `401` | Invalid or missing key | Confirm the key starts with `ot_`, is copied in full, and has not been deleted from the dashboard. |
-| `403` | No active subscription | Subscribe to a plan or re-activate your 7-day trial at [opentweet.io](https://opentweet.io). |
-| `429` | Daily post limit reached | Wait until midnight UTC when the counter resets, or upgrade to a plan with a higher daily limit. |
+The endpoint is not documented as anonymous. Do not make it public or disable sign-in merely to clear an error. See [Quickstart](/quickstart) for the verification sequence.
