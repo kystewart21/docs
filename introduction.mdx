@@ -23,8 +23,8 @@ Scorecard does not establish NCAA division, baseball sponsorship, roster opening
 
 Use the Site-provisioned BOX College Scorecard plugin and its supported authenticated connection. A browser login, shared document or Mintlify account does not authorise a server-to-server request.
 
-See [Authentication](/authentication), [Quickstart](/quickstart) and [Endpoint reference](/api/overview). The registered legacy endpoint is `https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp`. The supported Sites MCP route is `/mcp`; use the connection URL returned by Sites after publication.
+See [Authentication](/authentication), [Quickstart](/quickstart) and [Endpoint reference](/api/overview). Sites version 3 declares MCP support. Its provisioned connection URL is `https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/mcp`. The legacy `/api/mcp` route remains for compatibility, but older manually registered connections may still fail authentication.
 
 <Warning>
-  The last live check on 30 October 2026 returned a sign-in gate from the legacy endpoint and a separate workspace-policy denial from Recruiting Hub. Documentation changes do not prove those issues resolved. A successful authenticated tool call and hosted assessment are required.
+  On 30 October 2026, Sites confirmed the version 3 MCP publication. The older connector still returned a sign-in gate and Recruiting Hub still reported a separate workspace-policy denial. A successful call through the provisioned connection and a hosted assessment remain required.
 </Warning>
