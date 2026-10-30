@@ -80,5 +80,9 @@
         ]
       }
     ]
+  },
+  "banner": {
+    "content": "BOX Scorecard connection repair: use the authenticated Sites-provisioned plugin. See Authentication for verification requirements.",
+    "dismissible": false
   }
 }
