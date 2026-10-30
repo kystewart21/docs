@@ -1,146 +1,52 @@
 ---
-title: "College Scorecard MCP: Endpoint and Protocol Reference"
+title: "BOX Scorecard endpoint and tool reference"
 sidebarTitle: "Overview"
-description: "Base URL, HTTP methods, JSON-RPC 2.0 request and response shapes, and authentication details for the College Scorecard MCP server."
+description: "Identify the BOX College Scorecard service and its four tool inputs. Keep authenticated transport, returned evidence and source limitations distinct."
 ---
 
-The College Scorecard MCP server exposes a single HTTP endpoint that speaks the Model Context Protocol over JSON-RPC 2.0. You send tool calls as POST requests and retrieve the tool manifest with a GET request — no authentication headers or client-side API keys are required. The server handles all College Scorecard API credentials internally, so your AI assistant can start querying institutional data immediately after pointing it at the endpoint.
+BOX College Scorecard exposes institution and programme lookup tools. Use the transport and authentication details returned by the Site's supported MCP connection rather than copying a generic client's configuration.
 
-## Base URL
+## Service identity
 
-All requests target the following base URL:
+| Item | Value |
+| --- | --- |
+| Service origin | `https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site` |
+| Legacy registered route | `/api/mcp` |
+| Supported Sites MCP route | `/mcp` after capability publication |
+| Data provider | U.S. Department of Education College Scorecard |
+| Purpose | Read-only college research |
 
-```text
-https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp
-```
+The service's MCP route and the [official upstream API documentation](https://collegescorecard.ed.gov/data/documentation/) are separate interfaces. Mintlify hosts this documentation; it does not implement the BOX data service.
 
-<Note>
-  HTTPS is required for all requests. The server does not accept plain HTTP
-  connections. Requests made over `http://` will be rejected or redirected.
-</Note>
+## Tool inputs
 
-## Available Endpoints
+| Tool | Required input | Optional input |
+| --- | --- | --- |
+| `search_schools` | None | `query`, `filters`, `page`, `per_page`, `sort_by`, `sort_order` |
+| `get_school` | Integer `id` (UNITID) | None |
+| `compare_schools` | `ids`, two to five UNITIDs | `fields` |
+| `find_programs` | `cip_code` | `school_id`, `credential_level`, `page`, `per_page` |
 
-The table below lists every HTTP route exposed by the MCP server.
+Use the discovered tool schema for current accepted filters and bounds. Do not infer support for an arbitrary Scorecard field from these examples.
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| `POST` | `/api/mcp` | Execute a tool call (JSON-RPC 2.0 `tools/call`) |
-| `GET` | `/api/mcp` | Retrieve the tool manifest (`tools/list`) |
+## Example tool call
 
-Both routes consume and produce `application/json`. Always include the header `Content-Type: application/json` on POST requests.
-
-## Protocol Basics
-
-The server implements the [Model Context Protocol](https://modelcontextprotocol.io) transport layer over standard HTTP. Every POST body must be a well-formed JSON-RPC 2.0 object. MCP-compatible clients (Claude Desktop, Cursor, Windsurf, and others) handle this framing automatically; the details below are relevant if you are integrating directly or debugging raw traffic.
-
-### Request Format
-
-Every tool-call request follows this JSON-RPC 2.0 envelope. Set `method` to `tools/call`, supply the tool name and its arguments inside `params`, and include an `id` you can use to correlate the response.
+This JSON-RPC body illustrates a lookup. It is not an anonymous curl recipe or a captured successful result.
 
 ```json
 {
   "jsonrpc": "2.0",
+  "id": 1,
   "method": "tools/call",
   "params": {
-    "name": "<tool_name>",
-    "arguments": {}
-  },
-  "id": 1
+    "name": "get_school",
+    "arguments": {"id": 110404}
+  }
 }
 ```
 
-<Accordion title="Field descriptions">
-  | Field | Type | Required | Description |
-  |-------|------|----------|-------------|
-  | `jsonrpc` | string | ✅ | Must be the literal string `"2.0"` |
-  | `method` | string | ✅ | Use `"tools/call"` to invoke a tool, or `"tools/list"` to retrieve the manifest |
-  | `params.name` | string | ✅ | The MCP tool name (e.g., `"search_schools"`) |
-  | `params.arguments` | object | ✅ | Tool-specific parameters; see each tool's reference page |
-  | `id` | integer \| string | ✅ | Client-chosen correlation ID; echoed back in the response |
-</Accordion>
+## Evidence handling
 
-### Success Response Format
+A successful MCP transport response alone is insufficient. Check for a tool error, verify institution identity and retain source metadata. Do not invent a response schema, reporting year or financial-aid award. Distinguish the date data was retrieved from the period measured.
 
-When a tool call succeeds the server returns HTTP `200` with the following body. The `result` object contains the tool's output payload.
-
-```json
-{
-  "jsonrpc": "2.0",
-  "result": {},
-  "id": 1
-}
-```
-
-The shape of `result` depends on the tool invoked. See the [Schools reference](/api/schools) and [Programs reference](/api/programs) pages for full response field documentation.
-
-### Error Response Format
-
-When a request fails the server returns HTTP `200` (per JSON-RPC 2.0 convention) with an `error` object instead of `result`. The `code` field identifies the failure category, `message` provides a human-readable summary, and the optional `data` field carries field-level detail.
-
-```json
-{
-  "jsonrpc": "2.0",
-  "error": {
-    "code": -32602,
-    "message": "Invalid params",
-    "data": { "field": "id", "issue": "required" }
-  },
-  "id": 1
-}
-```
-
-See the [Error Codes](/api/error-codes) reference for the complete list of codes and remediation guidance.
-
-## Retrieving the Tool Manifest
-
-To discover which tools are available and inspect their input schemas, send either a GET request to `/api/mcp` or a `tools/list` JSON-RPC call:
-
-<Tabs>
-  <Tab title="HTTP GET">
-    ```bash
-    curl https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp
-    ```
-  </Tab>
-  <Tab title="JSON-RPC">
-    ```bash
-    curl -X POST https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp \
-      -H "Content-Type: application/json" \
-      -d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}'
-    ```
-  </Tab>
-</Tabs>
-
-Both approaches return the same full tool manifest. See the [Tool List](/api/tool-list) page for the complete response.
-
-## Quick Example: Calling a Tool
-
-The following example calls `search_schools` to find public universities in California.
-
-```bash
-curl -X POST https://box-college-scorecard-mcp.box-athletic-6399.chatgpt.site/api/mcp \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "search_schools",
-      "arguments": {
-        "filters": {
-          "state": "CA",
-          "ownership": "public"
-        },
-        "sort_by": "graduation_rate_4yr",
-        "sort_order": "desc",
-        "per_page": 5
-      }
-    },
-    "id": 1
-  }'
-```
-
-<Tip>
-  When using an MCP-compatible AI client you never write these requests
-  manually. The client negotiates the protocol and calls tools on your behalf
-  based on natural-language instructions.
-</Tip>
+See [Authentication](/authentication) for the separate 401 and workspace 403 cases. No Scorecard request should be directed to an OpenTweet URL.
